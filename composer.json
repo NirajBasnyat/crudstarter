@@ -29,5 +29,6 @@
                 "Niraj\\CrudStarter\\CrudStarterServiceProvider"
             ]
         }
-    }
+    },
+    "prefer-stable": true
 }
