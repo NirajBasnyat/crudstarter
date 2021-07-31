@@ -1,0 +1,33 @@
+{
+    "name": "niraj/crudstarter",
+    "description": "Basic Package that automates the tedious CRUD and API generation process.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "crud",
+        "crud generator",
+        "laravel crud generator",
+        "api generator"
+    ],
+    "authors": [
+        {
+            "name": "Niraj Basnet",
+            "email": "badassbasnet@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Niraj\\CrudStarter\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Niraj\\CrudStarter\\CrudStarterServiceProvider"
+            ]
+        }
+    }
+}

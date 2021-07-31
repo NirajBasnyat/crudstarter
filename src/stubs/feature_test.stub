@@ -1,0 +1,100 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\{{modelName}};
+use Illuminate\Http\UploadedFile;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class {{modelName}}Test extends TestCase
+{
+    use RefreshDatabase;
+
+    //ADDD THISSS in TestCase
+       /* public function isLoggedIn()
+        {
+            $user = User::factory()->create();
+            $this->actingAs($user);
+        }
+        */
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_can_be_created()
+    {
+        //custom method created in TestCase to get logged_in user instance.
+
+        $this->isLoggedIn();
+
+        $response = $this->post('{{modelNamePluralLowerCase}}', [
+            'title' => 'Test',
+            'description' => 'test description',
+            'status' => 1
+        ])->assertStatus(200);
+
+        $this->assertCount(1, {{modelName}}::all());
+    }
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_can_be_deleted()
+    {
+        $this->isLoggedIn();
+        //storing {{modelNameSingularLowerCase}}
+        $this->post('{{modelNamePluralLowerCase}}', [
+            'title' => 'Test',
+            'description' => 'test description',
+        ]);
+        $this->assertCount(1, {{modelName}}::all());
+
+        //deleting stored {{modelNameSingularLowerCase}}
+        ${{modelNameSingularLowerCase}} = {{modelName}}::first();
+        ${{modelNameSingularLowerCase}}->delete('/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id);
+        $this->assertCount(0, {{modelName}}::all());
+    }
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_can_be_updated()
+    {
+        $this->isLoggedIn();
+        //storing {{modelNameSingularLowerCase}}
+        $this->post('{{modelNamePluralLowerCase}}', [
+            'title' => 'Test',
+            'description' => 'test description',
+        ]);
+        $this->assertCount(1, {{modelName}}::all());
+
+        //updating stored {{modelNameSingularLowerCase}}
+        ${{modelNameSingularLowerCase}} = {{modelName}}::first();
+        $this->patch('/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id, [
+            'title' => 'Title Updated',
+            'description' => 'test description',
+        ])->assertStatus(200);
+
+        $this->assertEquals('Title Updated', {{modelName}}::first()->title);
+        $this->assertCount(1, {{modelName}}::all());
+    }
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_validation_works()
+    {
+        $this->isLoggedIn();
+
+        $this->post('{{modelNamePluralLowerCase}}', [
+            //not passing title
+            'description' => 'test description',
+        ])->assertSessionHasErrors('title');
+
+        $this->assertCount(0, {{modelName}}::all());
+    }
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_pages_are_visible()
+    {
+        $this->isLoggedIn();
+
+        $this->get(route('{{modelNamePluralLowerCase}}.index'))->assertStatus(200);
+        $this->get(route('{{modelNamePluralLowerCase}}.create'))->assertStatus(200);
+    }
+
+}

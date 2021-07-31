@@ -1,0 +1,33 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\{{modelName}};
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class {{modelName}}Factory extends Factory
+{
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = {{modelName}}::class;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array
+     */
+    public function definition()
+    {
+        return [
+            'title' => $this->faker->sentence,
+            'description' => $this->faker->paragraph,
+            'news_date' => $this->faker->unique()->dateTimeBetween('now', '+2 days'),
+            'price' => $this->faker->numberBetween(200, 900),
+            'status' => $this->faker->boolean,
+            'sorting' => $this->faker->unique()->numberBetween(1, 30)
+        ];
+    }
+}

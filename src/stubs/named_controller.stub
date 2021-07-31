@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Http\Controllers\{{folderName}};
+
+use App\Models\{{modelName}};
+use App\Http\Controllers\Controller;
+use App\Http\Requests\{{modelName}}Request;
+
+class {{modelName}}Controller extends Controller
+{
+    public function index()
+    {
+        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.index', [
+            '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()->get()
+        ]);
+    }
+
+     public function create()
+     {
+        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.create');
+     }
+
+    public function store({{modelName}}Request $request)
+    {
+        {{modelName}}::create($request->validated());
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
+    }
+
+    public function show({{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.show', compact('{{modelNameSingularLowerCase}}'));
+    }
+
+    public function edit({{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.edit', compact('{{modelNameSingularLowerCase}}'));
+    }
+
+    public function update({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        ${{modelNameSingularLowerCase}}->update($request->validated());
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
+    }
+
+    public function destroy({{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        ${{modelNameSingularLowerCase}}->delete();
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Deleted Successfully!');
+    }
+}
