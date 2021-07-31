@@ -19,7 +19,6 @@ These will let you generate
 
 
 ## How To Start
-- Clone the repo
 - type **php artisan** inside your app terminal you will see two custom commands ie **gen:api** and **gen:crud**
 - To generate CRUD ``php artisan gen:crud {ModelName} ``
 - To generate API ``php artisan gen:api {ModelName} ``
