@@ -39,6 +39,7 @@
                                 type="submit" title="Delete">
                                 Delete
                         </button>
+                      </form>
                   </td>
                 </tr>
             @empty
