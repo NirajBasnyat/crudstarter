@@ -1,31 +1,60 @@
 ## Crud and API Generator Package
 
-### This package provides an artisan command to generate a basic crud
+### Package which let's you automate tedious CRUD Operations.
 
-composer install command: 
+## Requirements
 ```
-composer require niraj/crudstarter
+Laravel Version: >= 8.0
+PHP Version: >= 7.1
+Composer: >= 2.0
 ```
 
-## 
-# Let's Generate !
+## Installation
+```
+composer require niraj/crudstarter --dev
+```
 
-## What will be generated
+```
+php artisan vendor:publish --tag=crud-stub
+```
+
+
+## Usage
+- type **php artisan** inside your app terminal where you will see two new commands 
+ - **gen:api**
+ - **gen:crud**
+
+- To generate CRUD
+
+ ``php artisan gen:crud {ModelName} ``
+ 
+- To generate API
+
+ ``php artisan gen:api {ModelName} ``
+ 
+ 
+> Ex:  To generate Post CRUD ``php artisan gen:crud Post ``
+ 
+
+## What will be generated !
 
 These will let you generate
-- CRUD **[ Model, Controller, Blade File, Request, Factory, Migration ]** with **Feature Test!**
-- API  **[ ApiController, ApiRequest, ApiResource ]** with **Feature Test!**
+- CRUD **[ Model, Controller, Blade Files, Request, Factory, Migration ]** with **Feature Test Skeleton!**
+- API  **[ ApiController, ApiRequest, ApiResource ]** with **Feature Test Skeleton!**
+
  > **Note:** Model, Factory, Migration can be also generated for API if needed.
 
 
-## How To Start
-- type **php artisan** inside your app terminal you will see two custom commands ie **gen:api** and **gen:crud**
-- To generate CRUD ``php artisan gen:crud {ModelName} ``
-- To generate API ``php artisan gen:api {ModelName} ``
 
-	``[eg: gen:crud Post or gen:api Admin]``
 
 ## Customizations
 
-- You can easily customize everything to your need by simply changing stubs files present in stub folder.
- > **Note:** It will need to add your own migrations fields, validations in request.
+- You can easily customize everything to your need by simply changing stubs files present in crud-stub folder present in resources/crud-stub
+
+## Notes
+- Though Files will be generated automatically, You will need to add migrations and FormRequest data.
+
+- You may have to easily customize blade files according to your dashboard template.
+Which Can be done easily.
+
+- HAPPY CODING :metal: 
