@@ -17,7 +17,11 @@ class ApiGenerator extends Command
     {
         parent::__construct();
 
-        $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
+        if (file_exists(resource_path('crud-stub'))) {
+            $this->stub_path = resource_path('crud-stub');
+        } else {
+            $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
+        }
     }
 
     public function handle()

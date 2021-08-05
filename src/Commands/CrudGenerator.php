@@ -17,7 +17,12 @@ class CrudGenerator extends Command
     {
         parent::__construct();
 
-        $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
+        //check if stub files are published
+        if (file_exists(resource_path('crud-stub'))) {
+            $this->stub_path = resource_path('crud-stub');
+        }else{
+            $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
+        }
     }
 
     public function handle()
@@ -219,11 +224,26 @@ class CrudGenerator extends Command
             mkdir($path, 0777, true);
         }
 
+        //creates master.blade.php
+        $this->create_master_layout();
+
         //create file
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/index.blade.php"), $template1);
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/create.blade.php"), $template2);
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/edit.blade.php"), $template3);
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/show.blade.php"), $template4);
+    }
+
+    protected function create_master_layout()
+    {
+        //create file dir if it doesnot exist && create master.blade file if it doesnot exist
+        if (!file_exists($path = resource_path("/views/layouts"))) {
+            mkdir($path, 0777, true);
+        }
+
+        if (!file_exists($path = resource_path("/views/layouts/master.blade.php"))) {
+            file_put_contents(base_path("/resources/views/layouts/master.blade.php"), $this->getBladeStub('master_blade'));
+        }
     }
 
     protected function feature_test_stub($name)
@@ -344,4 +364,5 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/edit.blade.php"), $template3);
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/show.blade.php"), $template4);
     }
+
 }

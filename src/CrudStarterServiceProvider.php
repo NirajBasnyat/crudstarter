@@ -18,6 +18,10 @@ class CrudStarterServiceProvider extends ServiceProvider
                 ApiGenerator::class,
                 CrudGenerator::class,
             ]);
+
+            $this->publishes([
+                __DIR__.'/stubs' => base_path("/resources/crud-stub"),
+            ], 'crud-stub');
         }
     }
 
