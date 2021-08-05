@@ -1,5 +1,11 @@
 ## Crud and API Generator Package
 
+[![Stars](	https://img.shields.io/github/stars/NirajBasnyat/crudstarter)](https://github.com/NirajBasnyat/crudstarter/stargazers)
+[![Issues](https://img.shields.io/github/issues/NirajBasnyat/crudstarter)](https://github.com/NirajBasnyat/crudstarter/issues)
+![License](https://img.shields.io/github/license/NirajBasnyat/crudstarter)
+![Packagist Downloads](https://shields.api-test.nl/packagist/dt/niraj/crudstarter)
+
+
 ### Package which let's you automate tedious CRUD Operations.
 
 ## Requirements
