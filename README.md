@@ -45,7 +45,7 @@ php artisan vendor:publish --tag=crud-stub
 ## What will be generated !
 
 These will let you generate
-- CRUD **[ Model, Controller, Blade Files, Request, Factory, Migration ]** with **Feature Test Skeleton!**
+- CRUD **[ Model, Controller, Blade Files, Request, Migration ]** with **Feature Test Skeleton!**
 - API  **[ ApiController, ApiRequest, ApiResource ]** with **Feature Test Skeleton!**
 
  > **Note:** Model, Factory, Migration can be also generated for API if needed.

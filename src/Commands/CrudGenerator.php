@@ -30,18 +30,11 @@ class CrudGenerator extends Command
         $name = $this->argument('name');
         $this->model_stub($name);
         $this->request_stub($name);
-        $this->factory_stub($name);
 
         //define variable
         $this->snake_case = Str::snake($name);
         $this->snake_case_plural = Str::plural(Str::snake($name));
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
-
-        //add in Database seederFile
-        $current_contents = file_get_contents(base_path("database/seeders/DatabaseSeeder.php"));
-        $factory_name = "\\App\Models\\" . $name . "::factory(5)->create();";
-        $replacement = str_replace('//here', $factory_name, $current_contents);
-        file_put_contents(base_path("database/seeders/DatabaseSeeder.php"), $replacement);
 
         //make migration
         Artisan::call('make:migration create_' . $this->snake_case_plural . '_table --create=' . $this->snake_case_plural);
@@ -149,24 +142,6 @@ class CrudGenerator extends Command
 
         //update placeholder_model with valued Model
         file_put_contents(app_path("/Http/Controllers/{$name}Controller.php"), $template);
-    }
-
-    protected function factory_stub($name)
-    {
-        //gives model with replaced placeholder
-        $template = str_replace(
-            ['{{modelName}}'],
-            [$name], //name comes from command
-            $this->getStub('factory')
-        );
-
-        //create file dir if it doesnot exist
-        if (!file_exists($path = base_path("/database/factories"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(base_path("/database/factories/{$name}Factory.php"), $template);
     }
 
     protected function blade_stub($name)

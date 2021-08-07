@@ -14,11 +14,6 @@ class {{modelName}}Request extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required|string|min:3|max:50',
-            'date' => 'required|date',
-            'image' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-            'description' => 'required|string|min:5',
-            'status' => 'boolean',
         ];
     }
 }
