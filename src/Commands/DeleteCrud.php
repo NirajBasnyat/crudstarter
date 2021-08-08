@@ -61,7 +61,7 @@ class DeleteCrud extends Command
             $this->delete_request();
             $this->delete_test();
 
-            $this->info(' CRUD Files Delete Successfully !!');
+            $this->info('CRUD Files Delete Successfully !!');
             $this->warn('Please remove migration manually!!');
         }else{
             $this->error('Failed to Delete , Make sure File exist, FileName is correct or Folder is Named');

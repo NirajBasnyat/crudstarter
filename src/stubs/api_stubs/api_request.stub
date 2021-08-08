@@ -12,11 +12,7 @@ class {{modelName}}ApiRequest extends ApiFormRequest
     public function rules()
     {
         return [
-            'title' => 'required|string|Regex:/^[\D]+$/i|min:3|max:50',
-            'date' => 'required|date|after:yesterday',
-            'image' => 'image|mimes:jpg,png,jpeg,gif,svg|max:2048',
-            'description' => 'required|string|min:5|max:255',
-            'status' => 'boolean',
+
         ];
     }
 }
