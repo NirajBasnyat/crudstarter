@@ -26,16 +26,6 @@ php artisan vendor:publish --tag=crud-stub
 
 
 ## Usage
-- type **php artisan** inside your app terminal where you will see these new commands
-
-| prefix           |    postfix    |  parameter   |
-| ------------- |:------------:| --------------:|
-| gen:             | crud           | ModelName |
-| gen:             | api             | ModelName |
-| del:              | crud           | ModelName |
-| del:              | api             | ModelName |
-
-
 
 - To generate CRUD
 
@@ -45,16 +35,15 @@ php artisan vendor:publish --tag=crud-stub
 
  ``php artisan gen:api {ModelName} ``
 
-
  - To delete CRUD Files
 
  ``php artisan del:crud {ModelName} ``
 
-- To generate API
+- To delete API Files
 
  ``php artisan del:api {ModelName} ``
 
-> Ex:  To generate Post CRUD ``php artisan gen:crud Post ``
+> Example:  To generate Post CRUD ``php artisan gen:crud Post ``
 
 
 ## What will be generated !
