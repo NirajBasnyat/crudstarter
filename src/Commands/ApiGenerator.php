@@ -37,9 +37,8 @@ class ApiGenerator extends Command
         $this->resource_stub($name);
         $this->api_request_stub($name);
 
-        if ($this->confirm('Do you wish to generate Model, Migrations and Factory?')) {
+        if ($this->confirm('Do you wish to generate Model and Migration ?')) {
             $this->model_stub($name);
-            $this->factory_stub($name);
             Artisan::call('make:migration create_' . $this->snake_case_plural . '_table --create=' . $this->snake_case_plural);
         }
 
@@ -172,22 +171,5 @@ class ApiGenerator extends Command
 
         //update placeholder_model with valued Model
         file_put_contents(app_path("/Models/{$name}.php"), $template);
-    }
-
-    protected function factory_stub($name)
-    {
-        //gives model with replaced placeholder
-        $template = str_replace(
-            ['{{modelName}}'], [$name], //name comes from command
-            $this->getStub('factory')
-        );
-
-        //create file dir if it doesnot exist
-        if (!file_exists($path = base_path("/database/factories"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(base_path("/database/factories/{$name}Factory.php"), $template);
     }
 }
