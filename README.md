@@ -11,7 +11,7 @@
 ## Requirements
 ```
 Laravel Version: >= 8.0
-PHP Version: >= 7.1
+PHP Version: >= 7.3
 Composer: >= 2.0
 ```
 
