@@ -5,9 +5,12 @@ namespace Niraj\CrudStarter\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Niraj\CrudStarter\traits\tableTrait;
 
 class DeleteCrud extends Command
 {
+    use tableTrait;
+
     protected $signature = "del:crud {name}";
 
     protected $description = 'Deletes Generated CRUD Files';
@@ -20,6 +23,8 @@ class DeleteCrud extends Command
     public function handle()
     {
         $name = $this->argument('name');
+
+        $this->tableArray = array();
 
         //define variable
 
@@ -53,7 +58,10 @@ class DeleteCrud extends Command
 
     protected function is_valid_path()
     {
-        if(file_exists($this->model_path) && file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->blade_folder)){
+        if (file_exists($this->model_path) && file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->blade_folder)) {
+
+            $this->tableArray = [['Model', '<info>deleted</info>'], ['Form Request', '<info>deleted</info>'], ['Controller', '<info>deleted</info>'], ['Blade Files', '<info>deleted</info>']];
+
             //call delete functions
             $this->delete_model();
             $this->delete_controller();
@@ -61,9 +69,9 @@ class DeleteCrud extends Command
             $this->delete_request();
             $this->delete_test();
 
-            $this->info('CRUD Files Delete Successfully !!');
+            $this->showTableInfo($this->tableArray,'CRUD Files deleted');
             $this->warn('Please remove migration manually!!');
-        }else{
+        } else {
             $this->error('Failed to Delete , Make sure File exist, FileName is correct or Folder is Named');
         }
     }

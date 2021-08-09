@@ -5,9 +5,12 @@ namespace Niraj\CrudStarter\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Niraj\CrudStarter\traits\tableTrait;
 
 class DeleteApi extends Command
 {
+    use tableTrait;
+
     protected $signature = "del:api {name}";
 
     protected $description = 'Deletes Generated API Files';
@@ -20,6 +23,8 @@ class DeleteApi extends Command
     public function handle()
     {
         $name = $this->argument('name');
+
+        $this->tableArray = array();
 
         //define path
 
@@ -38,8 +43,11 @@ class DeleteApi extends Command
     {
         if (file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->resource_path)) {
 
+            $this->tableArray = [['Api Controller', '<info>deleted</info>'], ['Resource', '<info>deleted</info>'], ['Form Request', '<info>deleted</info>']];
+
             if (file_exists($this->model_path) && $this->confirm('Model Detected Want to Delete it too ?')) {
                 $this->delete_model();
+                $this->tableArray [] = ['Model', '<info>deleted</info>'];
             }
 
             //call delete functions
@@ -48,7 +56,7 @@ class DeleteApi extends Command
             $this->delete_resource_path();
             $this->delete_test();
 
-            $this->info('Api Files Delete Successfully !!');
+            $this->showTableInfo($this->tableArray,'API Files deleted');
             $this->warn('Please remove migration manually!!');
         } else {
             $this->error('Failed to Delete , Make sure File exist, FileName is correct or Folder is Named');
@@ -81,5 +89,4 @@ class DeleteApi extends Command
     {
         \File::delete($this->test_path);
     }
-
 }

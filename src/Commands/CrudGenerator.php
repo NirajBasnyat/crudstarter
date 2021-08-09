@@ -6,9 +6,12 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Niraj\CrudStarter\traits\tableTrait;
 
 class CrudGenerator extends Command
 {
+    use tableTrait;
+
     protected $signature = "gen:crud {name}";
 
     protected $description = 'Generates Basic Laravel Crud :)';
@@ -20,7 +23,7 @@ class CrudGenerator extends Command
         //check if stub files are published
         if (file_exists(resource_path('crud-stub'))) {
             $this->stub_path = resource_path('crud-stub');
-        }else{
+        } else {
             $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
         }
     }
@@ -28,10 +31,14 @@ class CrudGenerator extends Command
     public function handle()
     {
         $name = $this->argument('name');
+
+        $this->tableArray = array();
+
         $this->model_stub($name);
         $this->request_stub($name);
 
         //define variable
+
         $this->snake_case = Str::snake($name);
         $this->snake_case_plural = Str::plural(Str::snake($name));
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
@@ -64,14 +71,17 @@ class CrudGenerator extends Command
             $this->blade_stub($name);
         }
 
+        $this->tableArray = [['Model', '<info>created</info>'], ['Controller', '<info>created</info>'], ['Migration', '<info>created</info>'], ['Form Request', '<info>created</info>'], ['Blade Files', '<info>created</info>']];
+
         //to generate test
         if ($this->confirm('Do you wish to generate Test?')) {
             $this->feature_test_stub($name);
-            $this->line($name . ' Test was generated successfully !!');
+            $this->tableArray [] = ['Feature Test', '<info>created</info>'];
         }
 
-        $this->info($name . ' crud was generated successfully !!');
+        $this->showTableInfo($this->tableArray,'Crud generated');
     }
+
 
     protected function getStub($type)
     {
