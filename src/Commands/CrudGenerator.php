@@ -6,11 +6,12 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Niraj\CrudStarter\Traits\logoTrait;
 use Niraj\CrudStarter\traits\tableTrait;
 
 class CrudGenerator extends Command
 {
-    use tableTrait;
+    use tableTrait, logoTrait;
 
     protected $signature = "gen:crud {name}";
 
@@ -32,13 +33,14 @@ class CrudGenerator extends Command
     {
         $name = $this->argument('name');
 
+        //traits
         $this->tableArray = array();
+        $this->show_logo();
 
         $this->model_stub($name);
         $this->request_stub($name);
 
         //define variable
-
         $this->snake_case = Str::snake($name);
         $this->snake_case_plural = Str::plural(Str::snake($name));
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
