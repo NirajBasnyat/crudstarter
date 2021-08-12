@@ -4,15 +4,14 @@ namespace App\Http\Requests;
 
 class {{modelName}}ApiRequest extends ApiFormRequest
 {
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
-    public function rules()
+    public function rules(): array
     {
         return [
-
-        ];
+            {{validationRules}}];
     }
 }

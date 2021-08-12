@@ -9,6 +9,6 @@ class {{modelName}} extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    {{massAssignment}}
 
 }

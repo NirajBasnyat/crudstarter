@@ -16,12 +16,7 @@ class {{modelName}}Resource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => ucfirst($this->title),
-            'image' => $this->image,
-            'image_path' => $this->image ? asset('storage/some_image/' . $this->image) : '',
-            'description' => $this->description,
-            'status' => $this->status,
-            'created_at' => (string)$this->created_at
+            {{resourceContent}}'created_at' => $this->created_at->diffForHumans()
         ];
 
     }

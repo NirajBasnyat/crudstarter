@@ -13,7 +13,7 @@ class CrudGenerator extends Command
 {
     use tableTrait, logoTrait;
 
-    protected $signature = "gen:crud {name}";
+    protected $signature = "gen:crud {name} {--fields=}";
 
     protected $description = 'Generates Basic Laravel Crud :)';
 
@@ -32,21 +32,21 @@ class CrudGenerator extends Command
     public function handle()
     {
         $name = $this->argument('name');
+        $fields = $this->option('fields');
 
         //traits
         $this->tableArray = array();
         $this->show_logo();
 
-        $this->model_stub($name);
-        $this->request_stub($name);
-
         //define variable
+        $this->plural = Str::plural($name);
         $this->snake_case = Str::snake($name);
         $this->snake_case_plural = Str::plural(Str::snake($name));
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
 
-        //make migration
-        Artisan::call('make:migration create_' . $this->snake_case_plural . '_table --create=' . $this->snake_case_plural);
+        $this->model_stub($name, $fields);
+        $this->migration_stub($name, $fields);
+        $this->request_stub($name, $fields);
 
         if ($this->confirm('Do you want to add controllers in specific folder ?')) {
 
@@ -81,9 +81,8 @@ class CrudGenerator extends Command
             $this->tableArray [] = ['Feature Test', '<info>created</info>'];
         }
 
-        $this->showTableInfo($this->tableArray,'Crud generated');
+        $this->showTableInfo($this->tableArray, 'Crud generated');
     }
-
 
     protected function getStub($type)
     {
@@ -95,12 +94,106 @@ class CrudGenerator extends Command
         return file_get_contents("$this->stub_path/blade/$type.stub");
     }
 
-    protected function model_stub($name)
+    protected function migration_stub($name, $fields = '')
     {
+        $fieldLookUp = [
+            'inc' => 'increments',
+            'str' => 'string',
+            'int' => 'integer',
+            'uint' => 'unsignedInteger',
+            'tinyint' => 'tinyInteger',
+            'utinyint' => 'unsignedTinyInteger',
+            'smallint' => 'smallInteger',
+            'usmallint' => 'unsignedSmallInteger',
+            'mediumint' => 'mediumInteger',
+            'umediumint' => 'unsignedMediumInteger',
+            'bigint' => 'bigInteger',
+            'ubigint' => 'unsignedBigInteger',
+            'txt' => 'text',
+            'tinytext' => 'tinyText',
+            'mediumtext' => 'mediumText',
+            'longtext' => 'longText',
+            'bool' => 'boolean',
+            'fid' => 'foreignId',
+        ];
+
+        $migrationSchema = '';
+
+        if ($fields != '') {
+
+            $fieldsArray = explode(' ', $fields);
+
+            $data = array();
+
+            $iteration = 0;
+            foreach ($fieldsArray as $field) {
+                $fieldArraySingle = explode(':', $field);
+                $data[$iteration]['name'] = trim($fieldArraySingle[0]);
+                $data[$iteration]['type'] = trim($fieldArraySingle[1]);
+
+                $iteration++;
+            }
+
+            foreach ($data as $item) {
+                if (isset($fieldLookUp[$item['type']])) {
+                    $type = $fieldLookUp[$item['type']];
+
+                    $migrationSchema .= "\$table->" . $type . "('" . $item['name'] . "');" . PHP_EOL . '            ';
+                } else {
+                    $migrationSchema .= "\$table->" . $item['type'] . "('" . $item['name'] . "');" . PHP_EOL . '            ';
+                }
+            }
+        }
+
         //gives model with replaced placeholder
         $template = str_replace(
-            ['{{modelName}}'],
-            [$name], //name comes from command
+            [
+                '{{modelNamePlural}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{migrationSchema}}'
+            ],
+
+            [
+                $this->plural,
+                $this->snake_case_plural,
+                $migrationSchema
+            ],
+
+            $this->getStub('migration')
+        );
+
+        $path = database_path('/migrations/') . date('Y_m_d_His') . '_create_' . $this->snake_case_plural . '_table.php';
+
+        file_put_contents($path, $template);
+    }
+
+    protected function model_stub($name, $fields = '')
+    {
+        $massAssignment = "protected \$guarded = [];";
+
+        if ($fields != '') {
+
+            $fieldsArray = explode(' ', $fields);
+
+            foreach ($fieldsArray as $item) {
+                $single_value = explode(':', trim($item));
+                $fillableArray[] = $single_value[0];
+            }
+
+            $commaSeparetedString = implode("', '", $fillableArray);
+
+            $massAssignment = "protected \$fillable = ['" . $commaSeparetedString . "'];";
+        }
+        //gives model with replaced placeholder
+        $template = str_replace(
+            [
+                '{{modelName}}',
+                '{{massAssignment}}'
+            ],
+            [
+                $name,
+                $massAssignment
+            ],
             $this->getStub('model')
         );
 
@@ -113,12 +206,75 @@ class CrudGenerator extends Command
         file_put_contents(app_path("/Models/{$name}.php"), $template);
     }
 
-    protected function request_stub($name)
+    protected function request_stub($name, $fields = '')
     {
+        $validationLookUp = [
+            'int' => 'required|integer',
+            'uint' => 'required|integer',
+            'integer' => 'required|integer',
+            'tinyint' => 'required|integer',
+            'utinyint' => 'required|integer',
+            'tinyInteger' => 'required|integer',
+            'smallint' => 'required|integer',
+            'usmallint' => 'required|integer',
+            'smallInteger' => 'required|integer',
+            'mediumint' => 'required|integer',
+            'umediumint' => 'required|integer',
+            'mediumInteger' => 'required|integer',
+            'bigint' => 'required|integer',
+            'ubigint' => 'required|integer',
+            'bigInteger' => 'required|integer',
+            'str' => 'required|string',
+            'string' => 'required|string',
+            'txt' => 'required|string',
+            'text' => 'required|string',
+            'mediumtext' => 'required|string|min:5',
+            'mediumText' => 'required|string|min:5',
+            'longtext' => 'required|string|min:10',
+            'longText' => 'required|string|min:10',
+            'bool' => 'required|boolean',
+            'boolean' => 'required|boolean',
+            'date' => 'required|date'
+        ];
+
+        $validationRules = '';
+
+        if ($fields != '') {
+
+            $fieldsArray = explode(' ', $fields);
+
+            $data = array();
+
+            $iteration = 0;
+            foreach ($fieldsArray as $field) {
+                $fieldArraySingle = explode(':', $field);
+                $data[$iteration]['name'] = trim($fieldArraySingle[0]);
+                $data[$iteration]['type'] = trim($fieldArraySingle[1]);
+
+                $iteration++;
+            }
+
+            foreach ($data as $item) {
+                if (isset($validationLookUp[$item['type']])) {
+                    $type = $validationLookUp[$item['type']];
+
+                    $validationRules .= "'" . $item['name'] . "'" . '=>' . "'" . $type . "'," . PHP_EOL . '            ';
+                } else {
+                    $validationRules .= "'" . $item['name'] . "'" . '=>' . "'required'," . PHP_EOL . '            ';
+                }
+            }
+        }
+
         //gives model with replaced placeholder
         $template = str_replace(
-            ['{{modelName}}'],
-            [$name], //name comes from command
+            [
+                '{{modelName}}',
+                '{{validationRules}}'
+            ],
+            [
+                $name,
+                $validationRules
+            ],
             $this->getStub('request')
         );
 
@@ -351,5 +507,4 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/edit.blade.php"), $template3);
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/show.blade.php"), $template4);
     }
-
 }

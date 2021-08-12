@@ -22,12 +22,7 @@ class {{modelName}}Factory extends Factory
     public function definition()
     {
         return [
-            'title' => $this->faker->sentence,
-            'description' => $this->faker->paragraph,
-            'news_date' => $this->faker->unique()->dateTimeBetween('now', '+2 days'),
-            'price' => $this->faker->numberBetween(200, 900),
-            'status' => $this->faker->boolean,
-            'sorting' => $this->faker->unique()->numberBetween(1, 30)
+
         ];
     }
 }
