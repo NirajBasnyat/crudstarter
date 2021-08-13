@@ -96,8 +96,6 @@ some short hands for convenience are provided i.e instead of **``unsignedInteger
 - You can easily customize everything to your need by simply changing stubs files present in crud-stub folder present in resources/crud-stub
 
 ## Notes
-- Though Files will be generated automatically, You will need to add migrations and Form Request data.
-
 - You may have to easily customize blade files according to your dashboard template.
 Which Can be done easily.
 
