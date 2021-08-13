@@ -52,6 +52,7 @@ To add fields we use
  ``--fields="field_name1:data_type1{space}field_name2:data_type2"``
 
 > Example:  To generate Post CRUD with fields 
+>
 > ``php artisan gen:crud Post --fields="name:str description:text count:int status:bool"``
 
 ### Field Data Type
