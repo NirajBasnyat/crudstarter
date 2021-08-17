@@ -1,28 +1,31 @@
 @extends('layouts.master')
 
 @section('content')
-	<div class="card bg-primary">
-		<div class="card-header"><h2 class="lead text-center">Create a New {{modelName}}</h2></div>
-		<div class="card-body">
 
-			<form action="{{route('{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
-				@csrf
-				<div class="form-group">
-					<label>Title</label>
-					<input type="text" name="title" class="form-control mb-2" value="{{old('title')}}">
+    <div class="container">
+        <div class="card">
+            <div class="card-header"><h2 class="lead text-center">Create a New {{modelName}}</h2></div>
+            <div class="card-body">
 
-					<label>Content</label>
-					<textarea name="description" cols="5" rows="5" class="form-control mb-2">{{old('description')}}</textarea>
+                <form action="{{route('{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" name="title" class="form-control mb-2" value="{{old('title')}}">
 
-					<br>
-					<label>Image</label>
-					<input type="file" name="image" class="form-control mb-2">
+                        <label>Content</label>
+                        <textarea name="description" cols="5" rows="5" class="form-control mb-2">{{old('description')}}</textarea>
 
-					<input type="submit" name="submit" value="create" class="btn btn-dark">
-				</div>
+                        <br>
+                        <label>Image</label>
+                        <input type="file" name="image" class="form-control mb-2">
 
-			</form>
+                        <input type="submit" name="submit" value="create" class="btn btn-dark">
+                    </div>
 
+                </form>
+
+            </div>
 		</div>
 	</div>
 @endsection
