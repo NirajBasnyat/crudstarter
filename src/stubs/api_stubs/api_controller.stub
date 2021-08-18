@@ -28,7 +28,7 @@ class {{modelName}}ApiController extends Controller
 
     public function update({{modelName}}ApiRequest $request, {{modelName}} ${{modelNameSingularLowerCase}})
     {
-        ${{modelNameSingularLowerCase}}->update($request->all());
+        ${{modelNameSingularLowerCase}}->update($request->validated());
 
         return response()->json(${{modelNameSingularLowerCase}}, 200);
     }

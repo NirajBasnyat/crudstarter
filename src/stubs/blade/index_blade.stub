@@ -5,9 +5,9 @@
 <div class="container">
     <div class="card">
 
-        <div class="card-header bg-info">
-            <p class="lead m-0">Post List</p>
-            <a href="{{route('posts.create')}}" class="btn btn-sm btn-dark">Create</a>
+        <div class="card-header bg-info d-flex justify-content-between">
+            <p class="lead m-0">{{modelName}} List</p>
+            <a href="{{route('{{modelNamePluralKebabCase}}.create')}}" class="btn btn-sm btn-dark">Create</a>
         </div>
 
         <div class="card-body">

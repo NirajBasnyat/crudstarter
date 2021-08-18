@@ -12,7 +12,7 @@ class {{modelName}}Test extends TestCase
 {
     use RefreshDatabase;
 
-    //ADDD THISSS in TestCase
+    //ADDD THIS in TestCase
        /* public function isLoggedIn()
         {
             $user = User::factory()->create();
@@ -21,75 +21,62 @@ class {{modelName}}Test extends TestCase
         */
 
     /** @test */
-    public function {{modelNameSingularLowerCase}}_can_be_created()
+    public function {{modelNameSingularLowerCase}}_can_be_created() :void
     {
         //custom method created in TestCase to get logged_in user instance.
 
         $this->isLoggedIn();
 
-        $response = $this->post('{{modelNamePluralLowerCase}}', [
-            'title' => 'Test',
-            'description' => 'test description',
-            'status' => 1
-        ])->assertStatus(200);
+        $this->post('{{modelNamePluralLowerCase}}', [
+            {{createTestFields}}
+        ])->assertStatus(302);
 
         $this->assertCount(1, {{modelName}}::all());
     }
 
     /** @test */
-    public function {{modelNameSingularLowerCase}}_can_be_deleted()
+    public function {{modelNameSingularLowerCase}}_can_be_deleted() :void
     {
         $this->isLoggedIn();
+
         //storing {{modelNameSingularLowerCase}}
         $this->post('{{modelNamePluralLowerCase}}', [
-            'title' => 'Test',
-            'description' => 'test description',
+            {{createTestFields}}
         ]);
         $this->assertCount(1, {{modelName}}::all());
 
         //deleting stored {{modelNameSingularLowerCase}}
         ${{modelNameSingularLowerCase}} = {{modelName}}::first();
         ${{modelNameSingularLowerCase}}->delete('/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id);
+
         $this->assertCount(0, {{modelName}}::all());
     }
 
     /** @test */
-    public function {{modelNameSingularLowerCase}}_can_be_updated()
+    public function {{modelNameSingularLowerCase}}_can_be_updated() :void
     {
         $this->isLoggedIn();
+
         //storing {{modelNameSingularLowerCase}}
         $this->post('{{modelNamePluralLowerCase}}', [
-            'title' => 'Test',
-            'description' => 'test description',
+            {{createTestFields}}
         ]);
         $this->assertCount(1, {{modelName}}::all());
 
         //updating stored {{modelNameSingularLowerCase}}
         ${{modelNameSingularLowerCase}} = {{modelName}}::first();
-        $this->patch('/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id, [
-            'title' => 'Title Updated',
-            'description' => 'test description',
-        ])->assertStatus(200);
 
-        $this->assertEquals('Title Updated', {{modelName}}::first()->title);
+        $this->patch('/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id, [
+            {{updateTestFields}}
+        ])->assertStatus(302);
+
+        $this->assertNotEquals(${{modelNameSingularLowerCase}}->{{firstFieldForUpdate}}, {{modelName}}::first()->{{firstFieldForUpdate}});
+
         $this->assertCount(1, {{modelName}}::all());
     }
 
     /** @test */
-    public function {{modelNameSingularLowerCase}}_validation_works()
-    {
-        $this->isLoggedIn();
-
-        $this->post('{{modelNamePluralLowerCase}}', [
-            //not passing title
-            'description' => 'test description',
-        ])->assertSessionHasErrors('title');
-
-        $this->assertCount(0, {{modelName}}::all());
-    }
-
-    /** @test */
-    public function {{modelNameSingularLowerCase}}_pages_are_visible()
+    public function {{modelNameSingularLowerCase}}_pages_are_visible() :void
     {
         $this->isLoggedIn();
 

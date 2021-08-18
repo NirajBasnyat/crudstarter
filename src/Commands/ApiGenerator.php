@@ -59,9 +59,11 @@ class ApiGenerator extends Command
             $this->tableArray [] = ['Migration', '<info>created</info>'];
         }
 
-        if ($this->confirm('Do you wish to generate Tests for Api?')) {
-            $this->api_feature_test_stub($name);
-            $this->tableArray [] = ['Feature Test', '<info>created</info>'];
+        if ($fields != '') {
+            if ($this->confirm('Do you wish to generate Tests for Api?')) {
+                $this->api_feature_test_stub($name, $fields);
+                $this->tableArray [] = ['Feature Test', '<info>created</info>'];
+            }
         }
 
         //add api resource controller in api.php
@@ -185,20 +187,32 @@ class ApiGenerator extends Command
     }
 
     //FOR TEST
-    protected function api_feature_test_stub($name)
+    protected function api_feature_test_stub($name, $fields)
     {
+        $createTestFields = $this->resolve_create_test_fields($fields);
+
+        $updateTestFields = $this->resolve_update_test_fields($fields);
+
+        $firstFieldForUpdate = $this->resolve_first_of_update_field($fields);
+
         //gives model with replaced placeholder
         $template = str_replace(
             [
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}'
+                '{{modelNamePluralLowerCase}}',
+                '{{createTestFields}}',
+                '{{updateTestFields}}',
+                '{{firstFieldForUpdate}}'
             ],
 
             [
                 $name,
                 $this->snake_case,
-                $this->snake_case_plural
+                $this->snake_case_plural,
+                $createTestFields,
+                $updateTestFields,
+                $firstFieldForUpdate
             ],
             $this->getApiStub('api_feature_test')
         );

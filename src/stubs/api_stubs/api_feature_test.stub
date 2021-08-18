@@ -22,77 +22,57 @@ class {{modelName}}ApiTest extends TestCase
             */
 
     /** @test */
-    public function {{modelNameSingularLowerCase}}_can_be_created_via_api()
+    public function {{modelNameSingularLowerCase}}_can_be_created_via_api() :void
     {
         $this->isLoggedIn();
 
-        Storage::fake('local');
-
         $this->postJson('api/{{modelNamePluralLowerCase}}', [
-            'title' => 'Test',
-            'description' => 'test description',
-            'image' => UploadedFile::fake()->image('test_image.png'),
-            'status' => 1
+            {{createTestFields}}
         ])->assertStatus(201);
-
-        Storage::disk('local')->assertExists('public/{{modelNameSingularLowerCase}}_image/' . time() . '.png');
 
         $this->assertCount(1, {{modelName}}::all());
     }
 
     /** @test */
-    public function {{modelNameSingularLowerCase}}_can_be_deleted_via_api()
+    public function {{modelNameSingularLowerCase}}_can_be_deleted_via_api() :void
     {
         $this->isLoggedIn();
+
         //storing {{modelNameSingularLowerCase}}
         $this->postJson('api/{{modelNamePluralLowerCase}}', [
-            'title' => 'Test',
-            'description' => 'test description',
+            {{createTestFields}}
         ]);
+
         $this->assertCount(1, {{modelName}}::all());
 
         //deleting stored {{modelNameSingularLowerCase}}
         ${{modelNameSingularLowerCase}} = {{modelName}}::first();
         ${{modelNameSingularLowerCase}}->delete('/api/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id);
+
         $this->assertCount(0, {{modelName}}::all());
     }
 
     /** @test */
-    public function {{modelNameSingularLowerCase}}_can_be_updated_via_api()
+    public function {{modelNameSingularLowerCase}}_can_be_updated_via_api() :void
     {
         $this->withoutExceptionHandling();
         $this->isLoggedIn();
+
         //storing {{modelNameSingularLowerCase}}
         $this->postJson('api/{{modelNamePluralLowerCase}}', [
-            'title' => 'Test',
-            'description' => 'test description',
+            {{createTestFields}}
         ]);
         $this->assertCount(1, {{modelName}}::all());
 
         //updating stored {{modelNameSingularLowerCase}}
-        Storage::fake('local');
         ${{modelNameSingularLowerCase}} = {{modelName}}::first();
+
         $this->patchJson('/api/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id, [
-            'title' => 'Title Updated',
-            'image' => UploadedFile::fake()->image('test_image.png'),
-            'description' => 'test description',
+            {{updateTestFields}}
         ])->assertStatus(200);
-        Storage::disk('local')->assertExists('public/{{modelNameSingularLowerCase}}_image/' . time() . '.png');
 
-        $this->assertEquals('Title Updated', {{modelName}}::first()->title);
+        $this->assertNotEquals(${{modelNameSingularLowerCase}}->{{firstFieldForUpdate}}, {{modelName}}::first()->{{firstFieldForUpdate}});
+
         $this->assertCount(1, {{modelName}}::all());
-    }
-
-    /** @test */
-    public function {{modelNameSingularLowerCase}}_validation_works_via_api()
-    {
-        $this->isLoggedIn();
-
-        $this->postJson('/api/{{modelNamePluralLowerCase}}', [
-            //not passing title
-            'description' => 'test description',
-        ])->assertStatus(422);
-
-        $this->assertCount(0, {{modelName}}::all());
     }
 }

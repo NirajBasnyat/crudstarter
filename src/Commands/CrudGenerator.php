@@ -45,6 +45,7 @@ class CrudGenerator extends Command
         $this->snake_case_plural = Str::plural(Str::snake($name));
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
 
+
         $this->model_stub($name, $fields);
         $this->migration_stub($name, $fields);
         $this->request_stub($name, $fields);
@@ -77,9 +78,11 @@ class CrudGenerator extends Command
         $this->tableArray = [['Model', '<info>created</info>'], ['Controller', '<info>created</info>'], ['Migration', '<info>created</info>'], ['Form Request', '<info>created</info>'], ['Blade Files', '<info>created</info>']];
 
         //to generate test
-        if ($this->confirm('Do you wish to generate Test?')) {
-            $this->feature_test_stub($name);
-            $this->tableArray [] = ['Feature Test', '<info>created</info>'];
+        if ($fields != '') {
+            if ($this->confirm('Do you wish to generate Test?')) {
+                $this->feature_test_stub($name, $fields);
+                $this->tableArray [] = ['Feature Test', '<info>created</info>'];
+            }
         }
 
         $this->showTableInfo($this->tableArray, 'Crud generated');
@@ -287,20 +290,32 @@ class CrudGenerator extends Command
         }
     }
 
-    protected function feature_test_stub($name)
+    protected function feature_test_stub($name, $fields = '')
     {
-        //gives model with replaced placeholder
+        $createTestFields = $this->resolve_create_test_fields($fields);
+
+        $updateTestFields = $this->resolve_update_test_fields($fields);
+
+        $firstFieldForUpdate = $this->resolve_first_of_update_field($fields);
+
+        //gives test stub with replaced placeholder
         $template = str_replace(
             [
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}'
+                '{{modelNamePluralLowerCase}}',
+                '{{createTestFields}}',
+                '{{updateTestFields}}',
+                '{{firstFieldForUpdate}}'
             ],
 
             [
                 $name,
                 $this->snake_case,
-                $this->snake_case_plural
+                $this->snake_case_plural,
+                $createTestFields,
+                $updateTestFields,
+                $firstFieldForUpdate
             ],
             $this->getStub('feature_test')
         );
@@ -313,7 +328,7 @@ class CrudGenerator extends Command
 
     protected function named_controller_stub($name, $folder_name)
     {
-        //gives model with replaced placeholder
+        //gives named controller stub with replaced placeholder
         $template = str_replace(
             [
                 '{{folderName}}',
