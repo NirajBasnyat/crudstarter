@@ -2,34 +2,43 @@
 
 namespace Tests\Feature;
 
-use App\Models\{{modelName}};
-use Illuminate\Http\UploadedFile;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
+use App\Models\{{modelName}};
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class {{modelName}}Test extends TestCase
 {
     use RefreshDatabase;
 
-    //ADDD THIS in TestCase
-       /* public function isLoggedIn()
-        {
-            $user = User::factory()->create();
-            $this->actingAs($user);
-        }
-        */
+    private $make{{modelName}};
+
+    //ADD THIS in TestCase
+
+    //custom method created in TestCase to get logged_in user instance.
+   /* public function isLoggedIn()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+    }
+    */
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->make{{modelName}} = $this->post('{{modelNamePluralLowerCase}}', [
+           {{createTestFields}}
+        ]);
+    }
 
     /** @test */
     public function {{modelNameSingularLowerCase}}_can_be_created() :void
     {
-        //custom method created in TestCase to get logged_in user instance.
+        #Uncomment these if you have authentication system setup
+        //$this->isLoggedIn();
 
-        $this->isLoggedIn();
-
-        $this->post('{{modelNamePluralLowerCase}}', [
-            {{createTestFields}}
-        ])->assertStatus(302);
+        $response = $this->make{{modelName}};
+        $response->assertStatus(302);
 
         $this->assertCount(1, {{modelName}}::all());
     }
@@ -37,12 +46,11 @@ class {{modelName}}Test extends TestCase
     /** @test */
     public function {{modelNameSingularLowerCase}}_can_be_deleted() :void
     {
-        $this->isLoggedIn();
+        //$this->isLoggedIn();
 
         //storing {{modelNameSingularLowerCase}}
-        $this->post('{{modelNamePluralLowerCase}}', [
-            {{createTestFields}}
-        ]);
+        $this->make{{modelName}};
+
         $this->assertCount(1, {{modelName}}::all());
 
         //deleting stored {{modelNameSingularLowerCase}}
@@ -55,12 +63,11 @@ class {{modelName}}Test extends TestCase
     /** @test */
     public function {{modelNameSingularLowerCase}}_can_be_updated() :void
     {
-        $this->isLoggedIn();
+        //$this->isLoggedIn();
 
         //storing {{modelNameSingularLowerCase}}
-        $this->post('{{modelNamePluralLowerCase}}', [
-            {{createTestFields}}
-        ]);
+        $this->make{{modelName}};
+
         $this->assertCount(1, {{modelName}}::all());
 
         //updating stored {{modelNameSingularLowerCase}}
@@ -78,7 +85,7 @@ class {{modelName}}Test extends TestCase
     /** @test */
     public function {{modelNameSingularLowerCase}}_pages_are_visible() :void
     {
-        $this->isLoggedIn();
+        //$this->isLoggedIn();
 
         $this->get(route('{{modelNamePluralLowerCase}}.index'))->assertStatus(200);
         $this->get(route('{{modelNamePluralLowerCase}}.create'))->assertStatus(200);
