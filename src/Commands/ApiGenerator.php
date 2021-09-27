@@ -209,7 +209,7 @@ class ApiGenerator extends Command
             [
                 $name,
                 $this->snake_case,
-                $this->snake_case_plural,
+                $this->kebab_case_plural,
                 $createTestFields,
                 $updateTestFields,
                 $firstFieldForUpdate
