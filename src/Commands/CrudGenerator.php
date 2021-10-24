@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Niraj\CrudStarter\Traits\CommonCode;
 use Niraj\CrudStarter\Traits\logoTrait;
-use Niraj\CrudStarter\traits\tableTrait;
+use Niraj\CrudStarter\Traits\tableTrait;
 
 class CrudGenerator extends Command
 {
