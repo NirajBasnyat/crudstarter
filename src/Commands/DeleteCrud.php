@@ -5,7 +5,7 @@ namespace Niraj\CrudStarter\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Niraj\CrudStarter\traits\tableTrait;
+use Niraj\CrudStarter\Traits\tableTrait;
 
 class DeleteCrud extends Command
 {
