@@ -23,20 +23,8 @@
 
                 <form action="{{route('{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input type="text" name="title" class="form-control mb-2" value="{{old('title')}}">
-
-                        <label>Content</label>
-                        <textarea name="description" cols="5" rows="5" class="form-control mb-2">{{old('description')}}</textarea>
-
-                        <br>
-                        <label>Image</label>
-                        <input type="file" name="image" class="form-control mb-2">
-
+                        {{fieldsForCreate}}
                         <input type="submit" name="submit" value="create" class="btn btn-dark">
-                    </div>
-
                 </form>
 
             </div>

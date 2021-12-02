@@ -212,6 +212,138 @@ trait CommonCode
         return $firstField;
     }
 
+
+    // -----------------------------------------------for create form fields
+
+    protected function get_fields_for_create($fields = ''): string
+    {
+        $fieldsForCreate = '';
+        $parent_class = 'form-group';
+        $class = 'form-control';
+        $space = '                        ';
+
+        if ($fields != '') {
+
+            $data = $this->resolve_fields($fields);
+
+            foreach ($data as $item) {
+
+                if ($item['name'] == 'image' || $item['name'] == 'img' || $item['name'] == 'pic' || $item['name'] == 'picture' || $item['name'] == 'avatar' || $item['name'] == 'photo') {
+                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<input type="image" class="' . $class . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif ($item['type'] == 'str' || $item['type'] == 'string') {
+                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<input type="text" class="' . $class . '" id="' . $item['name'] . '" value="{{old(\'' . $item['name'] . '\')}}">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif ($item['type'] == 'text' || $item['type'] == 'txt') {
+                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<textarea class="' . $class . '" id="' . $item['name'] . '" rows="5" cols="5">' . '{{old(\'' . $item['name'] . '\')}}</textarea>' . PHP_EOL . $space;
+                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                } else {
+                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<input type="number" class="' . $class . '" id="' . $item['name'] . '" value="{{old(\'' . $item['name'] . '\')}}">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                }
+            }
+
+            return $fieldsForCreate;
+        }
+    }
+
+    // ---------------------------------------------------------------------
+
+    protected function get_fields_for_edit($fields = '', $snake_cased_var): string
+    {
+        $fieldsForEdit = '';
+        $parent_class = 'form-group';
+        $class = 'form-control';
+        $space = '                        ';
+
+        if ($fields != '') {
+
+            $data = $this->resolve_fields($fields);
+
+            foreach ($data as $item) {
+
+                if ($item['name'] == 'image' || $item['name'] == 'img' || $item['name'] == 'pic' || $item['name'] == 'picture' || $item['name'] == 'avatar' || $item['name'] == 'photo') {
+                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<input type="image" class="' . $class . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif ($item['type'] == 'str' || $item['type'] == 'string') {
+                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<input type="text" class="' . $class . '" id="' . $item['name'] . '" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif ($item['type'] == 'text' || $item['type'] == 'txt') {
+                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<textarea class="' . $class . '" id="' . $item['name'] . '" rows="5" cols="5">{{$' . $snake_cased_var . '->' . $item['name'] . '}}</textarea>' . PHP_EOL . $space;
+                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                } else {
+                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<input type="number" class="' . $class . '" id="' . $item['name'] . '" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                }
+
+                // dump($item['name']);//name
+                //dump($item['type']);//str
+            }
+
+            return $fieldsForEdit;
+        }
+    }
+
+    // ---------------------------------------------------------------------
+
+    protected function get_fields_create_and_edit($fields = '', $snake_cased_var): string
+    {
+        $fieldsForCreateAndEdit = '';
+        $parent_class = 'form-group';
+        $class = 'form-control';
+        $space = '                        ';
+
+        if ($fields != '') {
+
+            $data = $this->resolve_fields($fields);
+
+            foreach ($data as $item) {
+
+                if ($item['name'] == 'image' || $item['name'] == 'img' || $item['name'] == 'pic' || $item['name'] == 'picture' || $item['name'] == 'avatar' || $item['name'] == 'photo') {
+                    $fieldsForCreateAndEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<input type="image" class="' . $class . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif ($item['type'] == 'str' || $item['type'] == 'string') {
+                    $fieldsForCreateAndEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<input type="text" class="' . $class . '" id="' . $item['name'] . '" value="{{ old(\'' . $snake_cased_var . '\') ?:' . '(isset($' . $snake_cased_var . ') ? $' . $snake_cased_var . '->' . $item['name'] . ' : "") }}">' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif ($item['type'] == 'text' || $item['type'] == 'txt') {
+                    $fieldsForCreateAndEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<textarea class="' . $class . '" id="' . $item['name'] . '" rows="5" cols="5">{{ old(\'' . $snake_cased_var . '\') ?:' . '(isset($' . $snake_cased_var . ') ? $' . $snake_cased_var . '->' . $item['name'] . ' : "")}}</textarea>' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                } else {
+                    $fieldsForCreateAndEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '<input type="number" class="' . $class . '" id="' . $item['name'] . '" value="{{ old(\'' . $snake_cased_var . '\') ?:' . '(isset($' . $snake_cased_var . ') ? $' . $snake_cased_var . '->' . $item['name'] . ' : "") }}">' . PHP_EOL . $space;
+                    $fieldsForCreateAndEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                }
+            }
+
+            return $fieldsForCreateAndEdit;
+        }
+    }
+    // ---------------------------------------------------------------------
+
+
     //extracted functions
 
     protected function resolve_fields(string $fields): array
@@ -240,7 +372,6 @@ trait CommonCode
                 $type = $testFieldLookUp[$item['type']];
 
                 $createTestFields .= "'" . $item['name'] . "'" . '=>' . $type . "," . PHP_EOL . '            ';
-
             } elseif (isset($testFieldLookUp[$item['type']]) && !is_numeric($testFieldLookUp[$item['type']])) {
 
                 $type = $testFieldLookUp[$item['type']];
@@ -252,5 +383,4 @@ trait CommonCode
         }
         return $createTestFields;
     }
-
 }

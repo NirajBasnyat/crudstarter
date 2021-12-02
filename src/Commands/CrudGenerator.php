@@ -50,6 +50,8 @@ class CrudGenerator extends Command
         $this->migration_stub($name, $fields);
         $this->request_stub($name, $fields);
 
+        $this->blade_stub($name, $fields);
+
         if ($this->confirm('Do you want to add controllers in specific folder ?')) {
 
             $folder_name = $this->ask('Enter the Folder Name');
@@ -72,7 +74,7 @@ class CrudGenerator extends Command
 
             $this->controller_stub($name);
 
-            $this->blade_stub($name);
+            $this->blade_stub($name, $fields);
         }
 
         $this->tableArray = [['Model', '<info>created</info>'], ['Controller', '<info>created</info>'], ['Migration', '<info>created</info>'], ['Form Request', '<info>created</info>'], ['Blade Files', '<info>created</info>']];
@@ -81,7 +83,7 @@ class CrudGenerator extends Command
         if ($fields != '') {
             if ($this->confirm('Do you wish to generate Test?')) {
                 $this->feature_test_stub($name, $fields);
-                $this->tableArray [] = ['Feature Test', '<info>created</info>'];
+                $this->tableArray[] = ['Feature Test', '<info>created</info>'];
             }
         }
 
@@ -213,8 +215,15 @@ class CrudGenerator extends Command
         file_put_contents(app_path("/Http/Controllers/{$name}Controller.php"), $template);
     }
 
-    protected function blade_stub($name)
+    protected function blade_stub($name, $fields)
     {
+        $fieldsForCreate = $this->get_fields_for_create($fields);
+
+        $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case);
+
+        //uncomment when in create and edit use same blade file
+        //$fieldsForCreateEdit = $this->get_fields_create_and_edit($fields, $this->snake_case);
+
         $template1 = str_replace(
             [
                 '{{modelName}}',
@@ -227,7 +236,7 @@ class CrudGenerator extends Command
                 $name,
                 $this->snake_case,
                 $this->snake_case_plural,
-                $this->kebab_case_plural
+                $this->kebab_case_plural,
             ],
             $this->getBladeStub('index_blade')
         );
@@ -235,12 +244,15 @@ class CrudGenerator extends Command
         $template2 = str_replace(
             [
                 '{{modelName}}',
-                '{{modelNamePluralKebabCase}}'
+                '{{modelNamePluralKebabCase}}',
+                '{{fieldsForCreate}}'
             ],
 
             [
                 $name,
-                $this->kebab_case_plural
+                $this->kebab_case_plural,
+                $fieldsForCreate
+                //$fieldsForCreateEdit // just uncomment to use it
             ],
             $this->getBladeStub('create_blade')
         );
@@ -250,13 +262,14 @@ class CrudGenerator extends Command
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
                 '{{modelNamePluralKebabCase}}',
+                '{{fieldsForEdit}}'
             ],
 
             [
                 $name,
                 $this->snake_case,
-                $this->kebab_case_plural
-
+                $this->kebab_case_plural,
+                $fieldsForEdit
             ],
             $this->getBladeStub('edit_blade')
         );
@@ -360,8 +373,14 @@ class CrudGenerator extends Command
         file_put_contents(app_path("/Http/Controllers/{$folder_name}/{$name}Controller.php"), $template);
     }
 
-    protected function named_blade_stub($name, $folder_name)
+    protected function named_blade_stub($name, $folder_name, $fields)
     {
+        $fieldsForCreate = $this->get_fields_for_create($fields);
+
+        $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case);
+
+        //$fieldsForCreateEdit = $this->get_fields_create_and_edit($fields, $this->snake_case);
+
         $template1 = str_replace(
             [
                 '{{modelName}}',
@@ -382,12 +401,15 @@ class CrudGenerator extends Command
         $template2 = str_replace(
             [
                 '{{modelName}}',
-                '{{modelNamePluralKebabCase}}'
+                '{{modelNamePluralKebabCase}}',
+                '{{fieldsForCreate}}'
             ],
 
             [
                 $name,
-                $this->kebab_case_plural
+                $this->kebab_case_plural,
+                $fieldsForCreate,
+                //$fieldsForCreateEdit // just uncomment to use it
             ],
             $this->getBladeStub('create_blade')
         );
@@ -396,13 +418,15 @@ class CrudGenerator extends Command
             [
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralKebabCase}}'
+                '{{modelNamePluralKebabCase}}',
+                '{{fieldsForEdit}}'
             ],
 
             [
                 $name,
                 $this->snake_case,
-                $this->kebab_case_plural
+                $this->kebab_case_plural,
+                $fieldsForEdit
             ],
             $this->getBladeStub('edit_blade')
         );
