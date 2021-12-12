@@ -15,16 +15,16 @@ class {{modelName}}Controller extends Controller
         ]);
     }
 
-     public function create()
-     {
+    public function create()
+    {
         return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.create');
-     }
+    }
 
     public function store({{modelName}}Request $request)
     {
         {{modelName}}::create($request->validated());
 
-        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('message', '{{modelName}} Created Successfully!');
     }
 
     public function show({{modelName}} ${{modelNameSingularLowerCase}})
@@ -41,13 +41,13 @@ class {{modelName}}Controller extends Controller
     {
         ${{modelNameSingularLowerCase}}->update($request->validated());
 
-        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('message', '{{modelName}} Created Successfully!');
     }
 
     public function destroy({{modelName}} ${{modelNameSingularLowerCase}})
     {
         ${{modelNameSingularLowerCase}}->delete();
 
-        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Deleted Successfully!');
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('message', '{{modelName}} Deleted Successfully!');
     }
 }

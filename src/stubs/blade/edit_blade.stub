@@ -1,33 +1,18 @@
-@extends('layouts.master')
+@extends('layouts.main')
 
 @section('content')
 
-    <div class="container">
+    <div class="card">
+        <div class="card-header"><h2 class="lead text-center">Edit {{modelName}}</h2></div>
+        <div class="card-body">
 
-        @if(count($errors) > 0)
-            <div class="p-1">
-                @foreach($errors->all() as $error)
-                    <div class="alert alert-warning alert-danger fade show" role="alert">{{$error}}
-                        <button type="button" class="close"
-                                data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                @endforeach
-            </div>
-        @endif
+            <form action="{{route('{{modelNamePluralKebabCase}}.update', ${{modelNameSingularLowerCase}}->id)}}" method= "POST" enctype="multipart/form-data">
+                @csrf
+                @method('PATCH')
+                    {{fieldsForEdit}}
+                    <button class="btn btn-dark" type="submit">Create</button>
+            </form>
+        </div>
+    </div>
 
-        <div class="card">
-            <div class="card-header"><h2 class="lead text-center">Edit {{modelName}}</h2></div>
-            <div class="card-body">
-
-                <form action="{{route('{{modelNamePluralKebabCase}}.update', ${{modelNameSingularLowerCase}}->id)}}" method= "POST" enctype="multipart/form-data">
-                    @csrf
-                    @method('PATCH')
-                      {{fieldsForEdit}}
-                      <input type="submit" name="submit" value="Update" class="btn btn-dark">
-                </form>
-            </div>
-		</div>
-	</div>
 @endsection

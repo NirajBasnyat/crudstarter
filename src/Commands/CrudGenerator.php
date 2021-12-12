@@ -281,8 +281,8 @@ class CrudGenerator extends Command
             mkdir($path, 0777, true);
         }
 
-        //creates master.blade.php
-        $this->create_master_layout();
+        //creates main.blade.php
+        $this->create_main_layout();
 
         //create file
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/index.blade.php"), $template1);
@@ -291,15 +291,15 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/show.blade.php"), $template4);
     }
 
-    protected function create_master_layout()
+    protected function create_main_layout()
     {
-        //create file dir if it doesnot exist && create master.blade file if it doesnot exist
+        //create file dir if it doesnot exist && create main.blade file if it doesnot exist
         if (!file_exists($path = resource_path("/views/layouts"))) {
             mkdir($path, 0777, true);
         }
 
-        if (!file_exists($path = resource_path("/views/layouts/master.blade.php"))) {
-            file_put_contents(base_path("/resources/views/layouts/master.blade.php"), $this->getBladeStub('master_blade'));
+        if (!file_exists($path = resource_path("/views/layouts/main.blade.php"))) {
+            file_put_contents(base_path("/resources/views/layouts/main.blade.php"), $this->getBladeStub('main_stub'));
         }
     }
 
