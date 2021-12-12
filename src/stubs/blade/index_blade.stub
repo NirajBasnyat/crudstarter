@@ -17,8 +17,7 @@
             <thead>
               <tr>
                 <th>SN</th>
-                <th>{{modelName}}</th>
-                <th>Edit</th>
+                {{theadForIndex}}<th>Edit</th>
                 <th>Delete</th>
               </tr>
             </thead>
@@ -29,9 +28,7 @@
                     <tr>
                       <td>{{$loop->iteration}}</td>
 
-                      <td>{{${{modelNameSingularLowerCase}}->name}}</td>
-
-                      <td>
+                      {{rowsForIndex}}<td>
                           <a href="{{route('{{modelNamePluralKebabCase}}.edit', ${{modelNameSingularLowerCase}}->id) }}" class="btn btn-secondary btn-sm">Edit</a>
                       </td>
 
@@ -47,6 +44,7 @@
                           </form>
                       </td>
                     </tr>
+                    
                 @empty
                     <td>No record</td>
                 @endforelse

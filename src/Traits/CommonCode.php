@@ -341,6 +341,45 @@ trait CommonCode
             return $fieldsForCreateAndEdit;
         }
     }
+    // ---------------------------------------------------------------------FOR INDEX BLADE
+
+    protected function get_rows_for_index($fields = '', $modelNameSingularLowerCase = ''): string
+    {
+        // dump($item['name']);//name
+        //dump($item['type']);//str
+
+        $rowsForEdit = '';
+        $space = '                        ';
+
+        if ($fields != '') {
+
+            $data = $this->resolve_fields($fields);
+
+            foreach ($data as $item) {
+                $rowsForEdit .= '<td>{{$' . $modelNameSingularLowerCase . '->' . $item['name'] . '}}</td>' . PHP_EOL . $space . PHP_EOL . $space;
+            }
+
+            return $rowsForEdit;
+        }
+    }
+
+    protected function get_thead_for_index($fields = ''): string
+    {
+        $theadRows = '';
+        $space = '                        ';
+
+        if ($fields != '') {
+
+            $data = $this->resolve_fields($fields);
+
+            foreach ($data as $item) {
+                $theadRows .= '<th>' . ucfirst($item['name']) .
+                    '</th>' . $space . PHP_EOL . $space;
+            }
+        }
+        return $theadRows;
+    }
+
     // ---------------------------------------------------------------------
 
 
