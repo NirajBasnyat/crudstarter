@@ -299,7 +299,7 @@ class CrudGenerator extends Command
         }
 
         if (!file_exists($path = resource_path("/views/layouts/main.blade.php"))) {
-            file_put_contents(base_path("/resources/views/layouts/main.blade.php"), $this->getBladeStub('main_stub'));
+            file_put_contents(base_path("/resources/views/layouts/main.blade.php"), $this->getBladeStub('main_blade'));
         }
     }
 
