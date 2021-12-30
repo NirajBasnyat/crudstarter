@@ -5,7 +5,7 @@
 <div class="container">
     <div class="card">
 
-        <div class="card-header bg-info d-flex justify-content-between">
+        <div class="card-header d-flex justify-content-between">
             <p class="lead m-0">{{modelName}} List</p>
             <a href="{{route('{{modelNamePluralKebabCase}}.create')}}" class="btn btn-sm btn-dark">Create</a>
         </div>

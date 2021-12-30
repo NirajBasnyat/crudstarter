@@ -47,9 +47,15 @@ trait CommonCode
             }
 
             foreach ($data as $item) {
-                if (isset($fieldLookUp[$item['type']])) {
+                //use in array
+                if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
                     $type = $fieldLookUp[$item['type']];
-
+                    $migrationSchema .= "\$table->" . $type . "('" . $item['name'] . "')->nullable();" . PHP_EOL . '            ';
+                } elseif (isset($fieldLookUp[$item['type']]) && ($fieldLookUp[$item['type']] == 'bool' || $fieldLookUp[$item['type']] == 'boolean')) {
+                    $type = $fieldLookUp[$item['type']];
+                    $migrationSchema .= "\$table->" . $type . "('" . $item['name'] . "')->default(0);" . PHP_EOL . '            ';
+                } elseif (isset($fieldLookUp[$item['type']])) {
+                    $type = $fieldLookUp[$item['type']];
                     $migrationSchema .= "\$table->" . $type . "('" . $item['name'] . "');" . PHP_EOL . '            ';
                 } else {
                     $migrationSchema .= "\$table->" . $item['type'] . "('" . $item['name'] . "');" . PHP_EOL . '            ';
@@ -86,8 +92,8 @@ trait CommonCode
             'mediumText' => 'required|string|min:5',
             'longtext' => 'required|string|min:10',
             'longText' => 'required|string|min:10',
-            'bool' => 'required|boolean',
-            'boolean' => 'required|boolean',
+            'bool' => 'boolean',
+            'boolean' => 'boolean',
             'date' => 'required|date'
         ];
 
@@ -99,9 +105,10 @@ trait CommonCode
             $data = $this->resolve_fields($fields);
 
             foreach ($data as $item) {
-                if (isset($validationLookUp[$item['type']])) {
+                if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
+                    $validationRules .= "'" . $item['name'] . "'" . '=>' . "'image'," . PHP_EOL . '            ';
+                } elseif (isset($validationLookUp[$item['type']])) {
                     $type = $validationLookUp[$item['type']];
-
                     $validationRules .= "'" . $item['name'] . "'" . '=>' . "'" . $type . "'," . PHP_EOL . '            ';
                 } else {
                     $validationRules .= "'" . $item['name'] . "'" . '=>' . "'required'," . PHP_EOL . '            ';
@@ -140,7 +147,7 @@ trait CommonCode
             'mediumText' => "some medium long string here",
             'longtext' => "some super long string here",
             'longText' => "some super long string here",
-            'bool' => true,
+            'bool' => 1,
         ];
 
         $createTestFields = '';
@@ -183,7 +190,7 @@ trait CommonCode
             'mediumText' => "some medium long string updated here",
             'longtext' => "some super long string updated here",
             'longText' => "some super long string updated here",
-            'bool' => false,
+            'bool' => 0,
         ];
 
         $updateTestFields = '';
@@ -212,7 +219,6 @@ trait CommonCode
         return $firstField;
     }
 
-
     // -----------------------------------------------for create form fields
 
     protected function get_fields_for_create($fields = ''): string
@@ -227,21 +233,25 @@ trait CommonCode
             $data = $this->resolve_fields($fields);
 
             foreach ($data as $item) {
-
-                if ($item['name'] == 'image' || $item['name'] == 'img' || $item['name'] == 'pic' || $item['name'] == 'picture' || $item['name'] == 'avatar' || $item['name'] == 'photo') {
+                if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
                     $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
                     $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<input type="image" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<input type="file" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
                     $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
-                } elseif ($item['type'] == 'str' || $item['type'] == 'string') {
+                } elseif (in_array($item['type'], ['str', 'string'])) {
                     $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
                     $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
                     $fieldsForCreate .= '<input type="text" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" value="{{old(\'' . $item['name'] . '\')}}">' . PHP_EOL . $space;
                     $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
-                } elseif ($item['type'] == 'text' || $item['type'] == 'txt') {
+                } elseif (in_array($item['type'], ['txt', 'text'])) {
                     $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
                     $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
                     $fieldsForCreate .= '<textarea class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" rows="5" cols="5">' . '{{old(\'' . $item['name'] . '\')}}</textarea>' . PHP_EOL . $space;
+                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif (in_array($item['type'], ['bool', 'boolean'])) {
+                    $fieldsForCreate .= $space . '<div class="form-check">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<input type="checkbox" class="form-check-input" name="' . $item['name'] . '" id="' . $item['name'] . '" value="1">' . PHP_EOL . $space;
+                    $fieldsForCreate .= '<label class="form-check-label" for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
                     $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
                 } else {
                     $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
@@ -270,20 +280,26 @@ trait CommonCode
 
             foreach ($data as $item) {
 
-                if ($item['name'] == 'image' || $item['name'] == 'img' || $item['name'] == 'pic' || $item['name'] == 'picture' || $item['name'] == 'avatar' || $item['name'] == 'photo') {
+                if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
                     $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
                     $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<input type="image" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<input type="file" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
                     $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
-                } elseif ($item['type'] == 'str' || $item['type'] == 'string') {
+                } elseif (in_array($item['type'], ['str', 'string'])) {
                     $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
                     $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
                     $fieldsForEdit .= '<input type="text" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}">' . PHP_EOL . $space;
                     $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
-                } elseif ($item['type'] == 'text' || $item['type'] == 'txt') {
+                } elseif (in_array($item['type'], ['txt', 'text'])) {
                     $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
                     $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
                     $fieldsForEdit .= '<textarea class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" rows="5" cols="5">{{$' . $snake_cased_var . '->' . $item['name'] . '}}</textarea>' . PHP_EOL . $space;
+                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                } elseif (in_array($item['type'], ['bool', 'boolean'])) {
+                    $fieldsForEdit .= $space . '<div class="form-check">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<input type="hidden" name="' . $item['name'] . '" value="0">' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<input type="checkbox" class="form-check-input" name="' . $item['name'] . '" id="' . $item['name'] . '" value="1"  {{$' . $snake_cased_var . '->' . $item['name'] . ' ? ' . '"checked" : ""}}>' . PHP_EOL . $space;
+                    $fieldsForEdit .= '<label class="form-check-label" for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
                     $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
                 } else {
                     $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
@@ -341,6 +357,7 @@ trait CommonCode
             return $fieldsForCreateAndEdit;
         }
     }
+
     // ---------------------------------------------------------------------FOR INDEX BLADE
 
     protected function get_rows_for_index($fields = '', $modelNameSingularLowerCase = ''): string
