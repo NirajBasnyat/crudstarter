@@ -75,23 +75,29 @@ To add helper trait simply add ``--addFileTrait``
 **For Storing Profile Avatar**
  ```php
 public function store(ProfileRequest $request) { 
+
 	$profile = Profile::create($request->except('avatar')); 
+	
 	if ($request->hasFile('avatar')) {
 		   $this->fileUpload($profile, 'avatar', 'profile-image', false); 
 	} 
+	
 	return redirect()->route('profiles.index')->with('message', 'Profile Created Successfully!'); 
 }
 ```
 **For Updating Profile Avatar**
 ```php
 public function update(ProfileRequest $request, Profile $profile) { 
+
 	$profile->update($request->except('avatar')); 
+	
 	if ($request->hasFile('avatar')) {
 		if (!is_null($profile->avatar)) {
 			$this->fileUpload($profile, 'avatar', 'profile-image', true);
 		}
 		$this->fileUpload($profile, 'avatar', 'profile-image', false);
 	} 
+	
 	return redirect()->route('profiles.index')->with('message', 'Profile Created Successfully!'); 
 }
 ``` 
