@@ -14,7 +14,7 @@ class CrudGenerator extends Command
 {
     use tableTrait, logoTrait, CommonCode;
 
-    protected $signature = "gen:crud {name} {--fields=}";
+    protected $signature = "gen:crud {name} {--fields=} {{--addFileTrait}}";
 
     protected $description = 'Generates Basic Laravel Crud :)';
 
@@ -34,6 +34,7 @@ class CrudGenerator extends Command
     {
         $name = $this->argument('name');
         $fields = $this->option('fields');
+        $addFileTrait = $this->option('addFileTrait');
 
         //traits
         $this->tableArray = array();
@@ -85,6 +86,11 @@ class CrudGenerator extends Command
                 $this->feature_test_stub($name, $fields);
                 $this->tableArray[] = ['Feature Test', '<info>created</info>'];
             }
+        }
+
+        //to add file trait helper
+        if (is_bool($addFileTrait) && $addFileTrait === true) {
+            $this->add_file_trait();
         }
 
         $this->showTableInfo($this->tableArray, 'Crud generated');
@@ -450,5 +456,14 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/create.blade.php"), $template2);
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/edit.blade.php"), $template3);
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/show.blade.php"), $template4);
+    }
+
+    protected function add_file_trait()
+    {
+        if (!file_exists($path = app_path("/Traits"))) {
+            mkdir($path, 0777, true);
+        }
+
+        copy(__DIR__ . '/../stubs/Traits/FileUploadTrait.php', app_path('/Traits/FileUploadTrait.php'));
     }
 }
