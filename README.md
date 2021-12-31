@@ -1,4 +1,5 @@
 
+
 ## Crud and API Generator Package
 
 [![Stars](	https://img.shields.io/github/stars/NirajBasnyat/crudstarter)](https://github.com/NirajBasnyat/crudstarter/stargazers)
@@ -29,19 +30,19 @@ php artisan vendor:publish --tag=crud-stub
 
 - To generate CRUD
 
- ``php artisan gen:crud {ModelName} ``
+``php artisan gen:crud {ModelName} ``
 
 - To generate API
 
- ``php artisan gen:api {ModelName} ``
+``php artisan gen:api {ModelName} ``
 
- - To delete CRUD Files
+- To delete CRUD Files
 
- ``php artisan del:crud {ModelName} ``
+``php artisan del:crud {ModelName} ``
 
 - To delete API Files
 
- ``php artisan del:api {ModelName} ``
+``php artisan del:api {ModelName} ``
 
 > Example:  To generate Post CRUD ``php artisan gen:crud Post ``
 
@@ -49,12 +50,51 @@ php artisan vendor:publish --tag=crud-stub
 You can add fields in ``gen`` commands which auto fills **model, migration, request and api resources**
 
 To add fields we use
- ``--fields="field_name1:data_type1{space}field_name2:data_type2"``
+``--fields="field_name1:data_type1{space}field_name2:data_type2"``
 
-> Example:  To generate Post CRUD with fields 
+> Example:  To generate Post CRUD with fields
 
 > ``php artisan gen:crud Post --fields="name:str description:text count:int status:bool"``
 
+### Adding File Upload Helper
+To add helper trait simply add ``--addFileTrait``
+> Example:  
+>  ``php artisan gen:crud Profile --fields="name:str avatar:str" --addFileTrait``
+
+> **Note:** You only need to add it one time. No need to specify it on next command!
+#### How to use trait helper
+- Add helper trait in controller ``use  FileUploadTrait;``
+- Add line to upload file ``$this->fileUpload($modelName, 'fieldName', 'folder-name', false);``
+> **Note:**
+> - `false` corresponds to deleting image.
+> -  make sure to run php artisan storage:link
+> - make sure to import trait at the top
+
+> Usage Example:  going with Profile Model above
+
+**For Storing Profile Avatar**
+ ```php
+public function store(ProfileRequest $request) { 
+	$profile = Profile::create($request->except('avatar')); 
+	if ($request->hasFile('avatar')) {
+		   $this->fileUpload($profile, 'avatar', 'profile-image', false); 
+	} 
+	return redirect()->route('profiles.index')->with('message', 'Profile Created Successfully!'); 
+}
+```
+**For Updating Profile Avatar**
+```php
+public function update(ProfileRequest $request, Profile $profile) { 
+	$profile->update($request->except('avatar')); 
+	if ($request->hasFile('avatar')) {
+		if (!is_null($profile->avatar)) {
+			$this->fileUpload($profile, 'avatar', 'profile-image', true);
+		}
+		$this->fileUpload($profile, 'avatar', 'profile-image', false);
+	} 
+	return redirect()->route('profiles.index')->with('message', 'Profile Created Successfully!'); 
+}
+``` 
 ### Field Data Type
 some short hands for convenience are provided i.e instead of **``unsignedInteger``** we can use  **``uint``**  instead while defining fields
 
@@ -82,14 +122,14 @@ some short hands for convenience are provided i.e instead of **``unsignedInteger
 
 ## What will be generated !
 
-- ### CRUD 
+- ### CRUD
   -**[ Model, Controller, Blade Files, Request, Migration ]** with **Feature Test Skeleton!**
-  
-- ###  API  
+
+- ###  API
 
   -**[ ApiController,  ApiRequest,  ApiResource ]** with **Feature Test Skeleton!**
 
- > **Note:** Model, Factory, Migration can be also generated for API if needed.
+> **Note:** Model, Factory, Migration can be also generated for API if needed.
 
 ## Customization
 
@@ -97,6 +137,6 @@ some short hands for convenience are provided i.e instead of **``unsignedInteger
 
 ## Notes
 - You may have to easily customize blade files according to your dashboard template.
-Which Can be done easily.
+  Which Can be done easily.
 
 - HAPPY CODING :metal: 
