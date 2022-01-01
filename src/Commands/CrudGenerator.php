@@ -51,8 +51,6 @@ class CrudGenerator extends Command
         $this->migration_stub($name, $fields);
         $this->request_stub($name, $fields);
 
-        $this->blade_stub($name, $fields);
-
         if ($this->confirm('Do you want to add controllers in specific folder ?')) {
 
             $folder_name = $this->ask('Enter the Folder Name');
@@ -65,7 +63,7 @@ class CrudGenerator extends Command
 
             $this->named_controller_stub($name, $folder_name);
 
-            $this->named_blade_stub($name, $folder_name);
+            $this->named_blade_stub($name, $folder_name, $fields);
         } else {
             //add resource controller in web.php
             File::append(
