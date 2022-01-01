@@ -390,6 +390,9 @@ class CrudGenerator extends Command
 
         $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case);
 
+        $rows_for_index = $this->get_rows_for_index($fields, $this->snake_case);
+        $thead_for_index = $this->get_thead_for_index($fields);
+
         //$fieldsForCreateEdit = $this->get_fields_create_and_edit($fields, $this->snake_case);
 
         $template1 = str_replace(
@@ -398,13 +401,17 @@ class CrudGenerator extends Command
                 '{{modelNameSingularLowerCase}}',
                 '{{modelNamePluralLowerCase}}',
                 '{{modelNamePluralKebabCase}}',
+                '{{rowsForIndex}}',
+                '{{theadForIndex}}',
             ],
 
             [
                 $name,
                 $this->snake_case,
                 $this->snake_case_plural,
-                $this->kebab_case_plural
+                $this->kebab_case_plural,
+                $rows_for_index,
+                $thead_for_index,
             ],
             $this->getBladeStub('index_blade')
         );
