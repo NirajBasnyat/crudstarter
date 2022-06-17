@@ -54,6 +54,8 @@ trait CommonCode
                 } elseif (isset($fieldLookUp[$item['type']]) && ($fieldLookUp[$item['type']] == 'bool' || $fieldLookUp[$item['type']] == 'boolean')) {
                     $type = $fieldLookUp[$item['type']];
                     $migrationSchema .= "\$table->" . $type . "('" . $item['name'] . "')->default(0);" . PHP_EOL . '            ';
+                } elseif ($item['type'] == 'select') {
+                    $migrationSchema .= "\$table->integer('" . $item['name'] . "');" . PHP_EOL . '            ';
                 } elseif (isset($fieldLookUp[$item['type']])) {
                     $type = $fieldLookUp[$item['type']];
                     $migrationSchema .= "\$table->" . $type . "('" . $item['name'] . "');" . PHP_EOL . '            ';
@@ -106,7 +108,7 @@ trait CommonCode
 
             foreach ($data as $item) {
                 if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
-                    $validationRules .= "'" . $item['name'] . "'" . '=>' . "'image'," . PHP_EOL . '            ';
+                    $validationRules .= "'" . $item['name'] . "'" . '=>' . "'image|nullable'," . PHP_EOL . '            ';
                 } elseif (isset($validationLookUp[$item['type']])) {
                     $type = $validationLookUp[$item['type']];
                     $validationRules .= "'" . $item['name'] . "'" . '=>' . "'" . $type . "'," . PHP_EOL . '            ';
@@ -226,38 +228,29 @@ trait CommonCode
         $fieldsForCreate = '';
         $parent_class = 'form-group';
         $class = 'form-control';
-        $space = '                        ';
 
         if ($fields != '') {
 
             $data = $this->resolve_fields($fields);
 
             foreach ($data as $item) {
+
                 if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
-                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<input type="file" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForCreate .= '<x-input type="file"' . ' label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" alt="image"/>' . PHP_EOL;
+
                 } elseif (in_array($item['type'], ['str', 'string'])) {
-                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<input type="text" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" value="{{old(\'' . $item['name'] . '\')}}">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
-                } elseif (in_array($item['type'], ['txt', 'text'])) {
-                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<textarea class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" rows="5" cols="5">' . '{{old(\'' . $item['name'] . '\')}}</textarea>' . PHP_EOL . $space;
-                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForCreate .= '<x-input type="text"' . ' label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" value="{{old(\'' . $item['name'] . '\')}}"/>' . PHP_EOL;
+
+                } elseif ($item['type'] == 'select') {
+                    $fieldsForCreate .= '<x-select name="' . $item['name'] . '" label="' . ucfirst($item['name']) . '" :options="' . $item['options'] . '"/>' . PHP_EOL;
+
+                } elseif (in_array($item['type'], ['txt', 'text', 'tinytext', 'tinyText', 'mediumtext', 'mediumText', 'longtext', 'longText'])) {
+                    $fieldsForCreate .= '<x-textarea label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" value="' . '{{old(\'' . $item['name'] . '\')}}" rows="5" cols="5" /> ' . PHP_EOL;
+
                 } elseif (in_array($item['type'], ['bool', 'boolean'])) {
-                    $fieldsForCreate .= $space . '<div class="form-check">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<input type="checkbox" class="form-check-input" name="' . $item['name'] . '" id="' . $item['name'] . '" value="1">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<label class="form-check-label" for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForCreate .= '<x-checkbox label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" value="1"' . ' class="form-check-input" />' . PHP_EOL;
                 } else {
-                    $fieldsForCreate .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForCreate .= '<input type="number" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" value="{{old(\'' . $item['name'] . '\')}}">' . PHP_EOL . $space;
-                    $fieldsForCreate .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForCreate .= '<x-input type="number"' . ' label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" value="{{old(\'' . $item['name'] . '\')}}"/>' . PHP_EOL;
                 }
             }
 
@@ -272,7 +265,6 @@ trait CommonCode
         $fieldsForEdit = '';
         $parent_class = 'form-group';
         $class = 'form-control';
-        $space = '                        ';
 
         if ($fields != '') {
 
@@ -281,31 +273,22 @@ trait CommonCode
             foreach ($data as $item) {
 
                 if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
-                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<input type="file" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" alt="image">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForEdit .= '<x-input type="file"' . ' label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" alt="image"/>' . PHP_EOL;
+
                 } elseif (in_array($item['type'], ['str', 'string'])) {
-                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<input type="text" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
-                } elseif (in_array($item['type'], ['txt', 'text'])) {
-                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<textarea class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" rows="5" cols="5">{{$' . $snake_cased_var . '->' . $item['name'] . '}}</textarea>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForEdit .= '<x-input type="text"' . ' label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}"/>' . PHP_EOL;
+
+                } elseif ($item['type'] == 'select') {
+                    $fieldsForEdit .= '<x-select name="' . $item['name'] . '" label="' . ucfirst($item['name']) . '" :options="' . $item['options'] . '" model="{{$'.$snake_cased_var.'->'.$item['name'].'}}"/>' . PHP_EOL;
+
+                } elseif (in_array($item['type'], ['txt', 'text', 'tinytext', 'tinyText', 'mediumtext', 'mediumText', 'longtext', 'longText'])) {
+                    $fieldsForEdit .= '<x-textarea label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] .'" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}" rows="5" cols="5" /> ' . PHP_EOL;
+
                 } elseif (in_array($item['type'], ['bool', 'boolean'])) {
-                    $fieldsForEdit .= $space . '<div class="form-check">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<input type="hidden" name="' . $item['name'] . '" value="0">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<input type="checkbox" class="form-check-input" name="' . $item['name'] . '" id="' . $item['name'] . '" value="1"  {{$' . $snake_cased_var . '->' . $item['name'] . ' ? ' . '"checked" : ""}}>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<label class="form-check-label" for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForEdit .= '<x-checkbox label="'. ucfirst($item['name']).'" id="'. $item['name']. '" name="'. $item['name'] .'" value="1" class="form-check-input" isEditMode="yes" :isChecked="$'. $snake_cased_var.'->'.$item['name']. ' ? \'checked\' : \'\' "/>'. PHP_EOL;
+
                 } else {
-                    $fieldsForEdit .= $space . '<div class="' . $parent_class . '">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<label for="' . $item['name'] . '">' . ucfirst($item['name']) . '</label>' . PHP_EOL . $space;
-                    $fieldsForEdit .= '<input type="number" class="' . $class . '" name="' . $item['name'] . '" id="' . $item['name'] . '" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}">' . PHP_EOL . $space;
-                    $fieldsForEdit .= '</div>' . PHP_EOL . PHP_EOL;
+                    $fieldsForEdit .= '<x-input type="number"' . ' label="' . ucfirst($item['name']) . '" id="' . $item['name'] . '" name="' . $item['name'] . '" value="{{$' . $snake_cased_var . '->' . $item['name'] . '}}"/>' . PHP_EOL;
                 }
 
                 // dump($item['name']);//name
@@ -405,7 +388,6 @@ trait CommonCode
     protected function resolve_fields(string $fields): array
     {
         $fieldsArray = explode(' ', $fields);
-
         $data = array();
 
         $iteration = 0;
@@ -413,6 +395,15 @@ trait CommonCode
             $fieldArraySingle = explode(':', $field);
             $data[$iteration]['name'] = trim($fieldArraySingle[0]);
             $data[$iteration]['type'] = trim($fieldArraySingle[1]);
+
+            if ($fieldArraySingle[1] == 'select') {
+                $options = trim($fieldArraySingle[2]);
+                $options = str_replace('options=', '', $options);
+                $optionsArray = explode(',', $options);
+                $commaSeparetedString = implode("', '", $optionsArray);
+                $options = "['$commaSeparetedString']";
+                $data[$iteration]['options'] = $options;
+            }
 
             $iteration++;
         }

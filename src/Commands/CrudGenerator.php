@@ -50,6 +50,7 @@ class CrudGenerator extends Command
         $this->model_stub($name, $fields);
         $this->migration_stub($name, $fields);
         $this->request_stub($name, $fields);
+        $this->publish_components();
 
         if ($this->confirm('Do you want to add controllers in specific folder ?')) {
 
@@ -300,6 +301,15 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/create.blade.php"), $template2);
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/edit.blade.php"), $template3);
         file_put_contents(base_path("/resources/views/" . $this->snake_case . "/show.blade.php"), $template4);
+    }
+
+    protected function publish_components()
+    {
+        if (!file_exists($path = resource_path('/views/components'))) {
+            mkdir($path, 0777, true);
+        }
+
+        \File::copyDirectory(__DIR__ . '/../components', resource_path("/views/components"));
     }
 
     protected function create_main_layout()
