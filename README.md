@@ -54,7 +54,9 @@ To add fields we use
 
 > Example:  To generate Post CRUD with fields
 
-> ``php artisan gen:crud Post --fields="name:str description:text count:int status:bool"``
+> ``php artisan gen:crud Post --fields="name:str description:text count:int by_admin:bool is_published:select:options=published,pending"``
+
+> **Note:** Please run auto-alignment (code-formatting) command in your ide/text-editor in generated blade files [eg: `` Ctrl+Alt+Shift+L`` in phpstorm].
 
 ### Adding File Upload Helper
 To add helper trait simply add ``--addFileTrait``
