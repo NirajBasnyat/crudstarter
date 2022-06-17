@@ -1,8 +1,6 @@
 @if(isset($routeShow))
     <td>
-        <a href="{{$routeShow}}" class="text-primary bs-tooltip text-info show" data-toggle="tooltip" data-placement="top" data-original-title="View">
-            <i class="far fa-eye"></i>
-        </a>
+        <a href="{{$routeShow}}" class="btn btn-sm btn-secondary">show</a>
     </td>
 @endif
 
@@ -24,8 +22,6 @@
 
 @if(isset($routeEdit))
     <td>
-        <a href="{{$routeEdit}}" class="btn btn-sm btn-info">
-            edit
-        </a>
+        <a href="{{$routeEdit}}" class="btn btn-sm btn-info">edit</a>
     </td>
 @endif

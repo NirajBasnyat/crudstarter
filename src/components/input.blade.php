@@ -1,5 +1,5 @@
 <div class="form-group">
-    <label for="{{$id ?? ''}}">{{$label ?? 'Text'}}</label>
-    <input type="{{$type ?? 'text'}}" class="{{$class ?? 'form-control'}}" name="{{$name}}" id="{{$id ?? ''}}"
+    <label for="{{$id ?? $name}}">{{$label ?? 'Text'}}</label>
+    <input type="{{$type ?? 'text'}}" class="{{$class ?? 'form-control'}}" name="{{$name}}" id="{{$id ?? $name}}"
     value="{{$value ?? ''}}">
 </div>
