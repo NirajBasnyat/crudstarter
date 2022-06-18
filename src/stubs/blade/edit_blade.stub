@@ -6,12 +6,11 @@
         <div class="card-header"><h2 class="lead text-center">Edit {{modelName}}</h2></div>
         <div class="card-body">
 
-            <form action="{{route('{{modelNamePluralKebabCase}}.update', ${{modelNameSingularLowerCase}}->id)}}" method= "POST" enctype="multipart/form-data">
-                @csrf
-                @method('PATCH')
+            <x-form action="{{route('{{modelNamePluralKebabCase}}.update', ${{modelNameSingularLowerCase}}->id)}}" method= "POST" enctype="multipart/form-data">
+                    @method('PATCH')
                     {{fieldsForEdit}}
-                    <button class="btn btn-dark" type="submit">Create</button>
-            </form>
+                    <x-button class="btn btn-sm btn-dark" type="submit">Update</x-button>
+            </x-form>
         </div>
     </div>
 
