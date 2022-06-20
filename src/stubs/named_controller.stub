@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\{{folderName}};
 
-use App\Models\{{modelName}};
+use App\Models\{{folderName}}\{{modelName}};
 use App\Http\Controllers\Controller;
-use App\Http\Requests\{{modelName}}Request;
+use App\Http\Requests\{{folderName}}\{{modelName}}Request;
 
 class {{modelName}}Controller extends Controller
 {

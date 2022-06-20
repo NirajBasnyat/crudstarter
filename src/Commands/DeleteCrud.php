@@ -32,23 +32,24 @@ class DeleteCrud extends Command
         $this->snake_case_plural = Str::plural(Str::snake($name));
 
         //define path
-
-        $this->model_path = app_path("/Models/{$name}.php");
-        $this->request_path = app_path("/Http/Requests/{$name}Request.php");
         $this->test_path = base_path("/tests/Feature/{$name}Test.php");
 
-        if ($this->confirm('Are Controller and Blades Placed inside Specific Folder?')) {
+        if ($this->confirm('Are CRUD files Placed inside Specific Folder?')) {
 
             $folder_name = $this->ask('Enter the Folder Name');
 
             $this->controller_path = app_path("/Http/Controllers/{$folder_name}/{$name}Controller.php");
+            $this->model_path = app_path("/Models/{$folder_name}/{$name}.php");
             $this->blade_folder = base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case);
+            $this->request_path = app_path("/Http/Requests/{$folder_name}/{$name}Request.php");
 
             $this->is_valid_path();
 
         } else {
+            $this->model_path = app_path("/Models/{$name}.php");
             $this->controller_path = app_path("/Http/Controllers/{$name}Controller.php");
             $this->blade_folder = base_path("/resources/views/" . $this->snake_case);
+            $this->request_path = app_path("/Http/Requests/{$name}Request.php");
 
             $this->is_valid_path();
         }
@@ -70,7 +71,7 @@ class DeleteCrud extends Command
             $this->delete_test();
 
             $this->showTableInfo($this->tableArray,'CRUD Files deleted');
-            $this->warn('Please remove migration manually!!');
+            $this->warn('Please remove migration and web routes manually!!');
         } else {
             $this->error('Failed to Delete , Make sure File exist, FileName is correct or Folder is Named');
         }

@@ -47,9 +47,8 @@ class CrudGenerator extends Command
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
 
 
-        $this->model_stub($name, $fields);
         $this->migration_stub($name, $fields);
-        $this->request_stub($name, $fields);
+
         $this->publish_components();
 
         if ($this->confirm('Do you want to add controllers in specific folder ?')) {
@@ -63,7 +62,8 @@ class CrudGenerator extends Command
             );
 
             $this->named_controller_stub($name, $folder_name);
-
+            $this->named_request_stub($name, $folder_name, $fields);
+            $this->named_model_stub($name, $folder_name, $fields);
             $this->named_blade_stub($name, $folder_name, $fields);
         } else {
             //add resource controller in web.php
@@ -73,7 +73,8 @@ class CrudGenerator extends Command
             );
 
             $this->controller_stub($name);
-
+            $this->request_stub($name, $fields);
+            $this->model_stub($name, $fields);
             $this->blade_stub($name, $fields);
         }
 
@@ -358,7 +359,7 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/tests/Feature/{$name}Test.php"), $template);
     }
 
-    //FOR FOLDER SPECIFIC
+    //FOR FOLDER SPECIFIC------------------------------------------------------------
 
     protected function named_controller_stub($name, $folder_name)
     {
@@ -461,6 +462,9 @@ class CrudGenerator extends Command
 
         $template4 = $this->getBladeStub('show_blade');
 
+        //creates main.blade.php
+        $this->create_main_layout();
+
         //create folder if it doesnot exist
         if (!file_exists($path = base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case))) {
             mkdir($path, 0777, true);
@@ -472,6 +476,77 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/edit.blade.php"), $template3);
         file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/show.blade.php"), $template4);
     }
+
+    protected function named_request_stub($name, $folder_name, $fields)
+    {
+        $validationRules = $this->resolve_request($fields);
+        //gives model with replaced placeholder
+        $template = str_replace(
+            [
+                '{{modelName}}',
+                '{{folderName}}',
+                '{{validationRules}}'
+            ],
+            [
+                $name,
+                $folder_name,
+                $validationRules
+            ],
+            $this->getStub('named_request')
+        );
+
+        //create file dir if it doesnot exist
+        if (!file_exists($path = app_path("/Http/Requests/{$folder_name}"))) {
+            mkdir($path, 0777, true);
+        }
+
+        //update placeholder_model with valued Model
+        file_put_contents(app_path("/Http/Requests/{$folder_name}/{$name}Request.php"), $template);
+    }
+
+    protected function named_model_stub($name, $folder_name, $fields = '')
+    {
+        $massAssignment = "protected \$guarded = [];";
+
+        if ($fields != '') {
+
+            $fieldsArray = explode(' ', $fields);
+
+            foreach ($fieldsArray as $item) {
+                $single_value = explode(':', trim($item));
+                $fillableArray[] = $single_value[0];
+            }
+
+            $commaSeparetedString = implode("', '", $fillableArray);
+
+            $massAssignment = "protected \$fillable = ['" . $commaSeparetedString . "'];";
+        }
+        //gives model with replaced placeholder
+        $template = str_replace(
+            [
+                '{{modelName}}',
+                '{{folderName}}',
+                '{{massAssignment}}'
+            ],
+            [
+                $name,
+                $folder_name,
+                $massAssignment
+            ],
+            $this->getStub('named_model')
+        );
+
+        //create file dir if it doesnot exist
+        if (!file_exists($path = app_path("/Models/{$folder_name}"))) {
+            mkdir($path, 0777, true);
+        }
+
+        //update placeholder_model with valued Model
+        file_put_contents(app_path("/Models/{$folder_name}/{$name}.php"), $template);
+    }
+
+
+    //END OF FOLDER SPECIFIC------------------------------------------------------------
 
     protected function add_file_trait()
     {
