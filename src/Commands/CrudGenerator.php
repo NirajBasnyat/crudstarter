@@ -46,7 +46,6 @@ class CrudGenerator extends Command
         $this->snake_case_plural = Str::plural(Str::snake($name));
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
 
-
         $this->migration_stub($name, $fields);
 
         $this->publish_components();
@@ -65,6 +64,14 @@ class CrudGenerator extends Command
             $this->named_request_stub($name, $folder_name, $fields);
             $this->named_model_stub($name, $folder_name, $fields);
             $this->named_blade_stub($name, $folder_name, $fields);
+
+            //to generate test
+            if ($fields != '') {
+                if ($this->confirm('Do you wish to generate Test?')) {
+                    $this->named_feature_test_stub($name, $folder_name, $fields);
+                    $this->tableArray[] = ['Feature Test', '<info>created</info>'];
+                }
+            }
         } else {
             //add resource controller in web.php
             File::append(
@@ -76,17 +83,17 @@ class CrudGenerator extends Command
             $this->request_stub($name, $fields);
             $this->model_stub($name, $fields);
             $this->blade_stub($name, $fields);
+
+            //to generate test
+            if ($fields != '') {
+                if ($this->confirm('Do you wish to generate Test?')) {
+                    $this->feature_test_stub($name, $fields);
+                    $this->tableArray[] = ['Feature Test', '<info>created</info>'];
+                }
+            }
         }
 
         $this->tableArray = [['Model', '<info>created</info>'], ['Controller', '<info>created</info>'], ['Migration', '<info>created</info>'], ['Form Request', '<info>created</info>'], ['Blade Files', '<info>created</info>']];
-
-        //to generate test
-        if ($fields != '') {
-            if ($this->confirm('Do you wish to generate Test?')) {
-                $this->feature_test_stub($name, $fields);
-                $this->tableArray[] = ['Feature Test', '<info>created</info>'];
-            }
-        }
 
         //to add file trait helper
         if (is_bool($addFileTrait) && $addFileTrait === true) {
@@ -543,6 +550,42 @@ class CrudGenerator extends Command
 
         //update placeholder_model with valued Model
         file_put_contents(app_path("/Models/{$folder_name}/{$name}.php"), $template);
+    }
+
+    protected function named_feature_test_stub($name, $folder_name, $fields = '')
+    {
+        $createTestFields = $this->resolve_create_test_fields($fields);
+
+        $updateTestFields = $this->resolve_update_test_fields($fields);
+
+        $firstFieldForUpdate = $this->resolve_first_of_update_field($fields);
+
+        //gives test stub with replaced placeholder
+        $template = str_replace(
+            [
+                '{{modelName}}',
+                '{{folderName}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{createTestFields}}',
+                '{{updateTestFields}}',
+                '{{firstFieldForUpdate}}'
+            ],
+
+            [
+                $name,
+                $folder_name,
+                $this->snake_case,
+                $this->kebab_case_plural,
+                $createTestFields,
+                $updateTestFields,
+                $firstFieldForUpdate
+            ],
+            $this->getStub('named_feature_test')
+        );
+
+        //update placeholder_model with valued Model
+        file_put_contents(base_path("/tests/Feature/{$name}Test.php"), $template);
     }
 
 
