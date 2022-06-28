@@ -6,10 +6,10 @@
         <div class="card-header"><h2 class="lead text-center">Create a New {{modelName}}</h2></div>
         <div class="card-body">
 
-            <x-form action="{{route('{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
+            <x-form.wrapper action="{{route('{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
                     {{fieldsForCreate}}
-                    <x-button class="btn btn-sm btn-dark" type="submit">Create</x-button>
-            </x-form>
+                    <x-form.button class="btn btn-sm btn-dark" type="submit">Create</x-form.button>
+            </x-form.wrapp>
 
         </div>
     </div>
