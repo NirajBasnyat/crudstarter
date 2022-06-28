@@ -9,7 +9,7 @@
             <x-form.wrapper action="{{route('{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
                     {{fieldsForCreate}}
                     <x-form.button class="btn btn-sm btn-dark" type="submit">Create</x-form.button>
-            </x-form.wrapp>
+            </x-form.wrapper>
 
         </div>
     </div>
