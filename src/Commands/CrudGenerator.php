@@ -315,9 +315,8 @@ class CrudGenerator extends Command
     {
         if (!file_exists($path = resource_path('/views/components'))) {
             mkdir($path, 0777, true);
+            \File::copyDirectory(__DIR__ . '/../components', resource_path("/views/components"));
         }
-
-        \File::copyDirectory(__DIR__ . '/../components', resource_path("/views/components"));
     }
 
     protected function create_main_layout()

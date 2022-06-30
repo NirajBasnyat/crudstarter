@@ -4,24 +4,25 @@
     </td>
 @endif
 
+<td class="d-flex">
+    <div class="float-right px-2">
+        @if(isset($routeDestroy))
 
-@if(isset($routeDestroy))
-    <td>
-        <form action="{{$routeDestroy}}" method="POST">
-            @csrf
-            @method('Delete')
+            <form action="{{$routeDestroy}}" method="POST">
+                @csrf
+                @method('Delete')
 
-            <button class="btn btn-danger btn-sm"
-                    onclick="return confirm('Are you sure you want to delete this item?');"
-                    type="submit" title="Delete">
-                delete
-            </button>
-        </form>
-    </td>
-@endif
-
-@if(isset($routeEdit))
-    <td>
-        <a href="{{$routeEdit}}" class="btn btn-sm btn-info">edit</a>
-    </td>
-@endif
+                <button class="btn btn-danger btn-sm"
+                        onclick="return confirm('Are you sure you want to delete this item?');"
+                        type="submit" title="Delete">
+                    delete
+                </button>
+            </form>
+        @endif
+    </div>
+    <div>
+        @if(isset($routeEdit))
+            <a href="{{$routeEdit}}" class="btn btn-sm btn-info">edit</a>
+        @endif
+    </div>
+</td>

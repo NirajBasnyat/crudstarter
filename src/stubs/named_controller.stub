@@ -43,7 +43,7 @@ class {{modelName}}Controller extends Controller
     {
         ${{modelNameSingularLowerCase}}->update($request->validated());
 
-        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Updated Successfully!');
     }
 
     public function destroy({{modelName}} ${{modelNameSingularLowerCase}}) : RedirectResponse
