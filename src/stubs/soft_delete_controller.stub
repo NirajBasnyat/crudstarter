@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\View\View;
+use Illuminate\Http\Request;
+use App\Models\{{modelName}};
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\{{modelName}}Request;
+
+class {{modelName}}Controller extends Controller
+{
+    public function index(Request $request): View
+    {
+        return view('{{modelNameSingularLowerCase}}.index', [
+            '{{modelNamePluralLowerCase}}' => {{modelName}}::when($request->has('archive'), function($query){
+                $query->onlyTrashed();
+             })
+             ->get()
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('{{modelNameSingularLowerCase}}.create');
+    }
+
+    public function store({{modelName}}Request $request): RedirectResponse
+    {
+        {{modelName}}::create($request->validated());
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
+    }
+
+    public function show({{modelName}} ${{modelNameSingularLowerCase}}): View
+    {
+        return view('{{modelNameSingularLowerCase}}.show', compact('{{modelNameSingularLowerCase}}'));
+    }
+
+    public function edit({{modelName}} ${{modelNameSingularLowerCase}}): View
+    {
+        return view('{{modelNameSingularLowerCase}}.edit', compact('{{modelNameSingularLowerCase}}'));
+    }
+
+    public function update({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}}): RedirectResponse
+    {
+        ${{modelNameSingularLowerCase}}->update($request->validated());
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Updated Successfully!');
+    }
+
+    public function destroy({{modelName}} ${{modelNameSingularLowerCase}}): RedirectResponse
+    {
+        ${{modelNameSingularLowerCase}}->delete();
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('error', '{{modelName}} Deleted Successfully!');
+    }
+
+    public function restore($id) : RedirectResponse
+    {
+        ${{modelNameSingularLowerCase}} = {{modelName}}::onlyTrashed()->findOrFail($id);
+        ${{modelNameSingularLowerCase}}->restore();
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Restored Successfully!');
+    }
+
+    public function forceDelete($id)
+    {
+        ${{modelNameSingularLowerCase}} = {{modelName}}::onlyTrashed()->findOrFail($id);
+        ${{modelNameSingularLowerCase}}->forceDelete();
+
+        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('error', '{{modelName}} Eliminated Successfully!');
+    }
+
+    /*
+    public function trashed(): View
+    {
+        ${{modelNameSingularLowerCase}} = {{modelName}}::onlyTrashed()->get();
+
+        return view('{{modelNameSingularLowerCase}}.trash', compact('{{modelNameSingularLowerCase}}'));
+    }
+    */
+}

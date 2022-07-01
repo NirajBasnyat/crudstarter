@@ -14,7 +14,7 @@ class CrudGenerator extends Command
 {
     use tableTrait, logoTrait, CommonCode;
 
-    protected $signature = "gen:crud {name} {--fields=} {{--addFileTrait}}";
+    protected $signature = "gen:crud {name} {--fields=} {{--addFileTrait}} {{--softDelete}}";
 
     protected $description = 'Generates Basic Laravel Crud :)';
 
@@ -35,6 +35,7 @@ class CrudGenerator extends Command
         $name = $this->argument('name');
         $fields = $this->option('fields');
         $addFileTrait = $this->option('addFileTrait');
+        $softDelete = $this->option('softDelete');
 
         //traits
         $this->tableArray = array();
@@ -55,10 +56,21 @@ class CrudGenerator extends Command
             $folder_name = $this->ask('Enter the Folder Name');
 
             //add named resource controller in web.php
-            File::append(
-                base_path('routes/web.php'),
-                'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $folder_name . "\\" . $name . "Controller::class);" . PHP_EOL
-            );
+            $data = 'Route::post(\'' . $this->kebab_case_plural . '/{id}/restore' . '\',[\\App\Http\Controllers\\' . $folder_name . "\\" . $name . 'Controller::class,' . '\'restore' . '\'])->name(\'' . $this->kebab_case_plural . '.restore\');' . PHP_EOL;
+            $data .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/force-delete' . '\',[\\App\Http\Controllers\\' . $folder_name . "\\" . $name . 'Controller::class,' . '\'forceDelete' . '\'])->name(\'' . $this->kebab_case_plural . '.force_delete\');' . PHP_EOL;
+            $data .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $folder_name . "\\" . $name . "Controller::class);" . PHP_EOL;
+
+            if ($this->hasSoftDeletes() == true) {
+                File::append(
+                    base_path('routes/web.php'),
+                    $data
+                );
+            } else {
+                File::append(
+                    base_path('routes/web.php'),
+                    'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $folder_name . "\\" . $name . "Controller::class);" . PHP_EOL
+                );
+            }
 
             $this->named_controller_stub($name, $folder_name);
             $this->named_request_stub($name, $folder_name, $fields);
@@ -74,10 +86,23 @@ class CrudGenerator extends Command
             }
         } else {
             //add resource controller in web.php
-            File::append(
-                base_path('routes/web.php'),
-                'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $name . "Controller::class);" . PHP_EOL
-            );
+
+            $data = 'Route::post(\'' . $this->kebab_case_plural . '/{id}/restore' . '\',[\\App\Http\Controllers\\' . $name . 'Controller::class,' . '\'restore' . '\'])->name(\'' . $this->kebab_case_plural . '.restore\');' . PHP_EOL;
+            //$data .= 'Route::get(\'' . $this->kebab_case_plural . '/trashed' . '\',[\\App\Http\Controllers\\' . $name . 'Controller::class,' . '\'trashed' . '\'])->name(\'' . $this->kebab_case_plural . '.trashed\');' . PHP_EOL;
+            $data .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/force-delete' . '\',[\\App\Http\Controllers\\' . $name . 'Controller::class,' . '\'forceDelete' . '\'])->name(\'' . $this->kebab_case_plural . '.force_delete\');' . PHP_EOL;
+            $data .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $name . "Controller::class);" . PHP_EOL;
+
+            if ($this->hasSoftDeletes() == true) {
+                File::append(
+                    base_path('routes/web.php'),
+                    $data
+                );
+            } else {
+                File::append(
+                    base_path('routes/web.php'),
+                    'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $name . "Controller::class);" . PHP_EOL
+                );
+            }
 
             $this->controller_stub($name);
             $this->request_stub($name, $fields);
@@ -105,6 +130,7 @@ class CrudGenerator extends Command
 
     protected function getStub($type)
     {
+        //dd("$this->stub_path/$type.stub");
         return file_get_contents("$this->stub_path/$type.stub");
     }
 
@@ -115,6 +141,11 @@ class CrudGenerator extends Command
 
     protected function migration_stub($name, $fields = '')
     {
+        $softDelete = '';
+        if ($this->hasSoftDeletes() == true) {
+            $softDelete = '$table->softDeletes();';
+        }
+
         $migrationSchema = $this->resolve_migration($fields);
 
         //gives model with replaced placeholder
@@ -122,13 +153,15 @@ class CrudGenerator extends Command
             [
                 '{{modelNamePlural}}',
                 '{{modelNamePluralLowerCase}}',
-                '{{migrationSchema}}'
+                '{{migrationSchema}}',
+                '{{softDelete}}'
             ],
 
             [
                 $this->plural,
                 $this->snake_case_plural,
-                $migrationSchema
+                $migrationSchema,
+                $softDelete
             ],
 
             $this->getStub('migration')
@@ -141,6 +174,14 @@ class CrudGenerator extends Command
 
     protected function model_stub($name, $fields = '')
     {
+        $traitImport = '';
+        $traits = '';
+
+        if ($this->hasSoftDeletes() == true) {
+            $traitImport = 'use Illuminate\Database\Eloquent\SoftDeletes;';
+            $traits = 'use SoftDeletes;';
+        }
+
         $massAssignment = "protected \$guarded = [];";
 
         if ($fields != '') {
@@ -160,11 +201,15 @@ class CrudGenerator extends Command
         $template = str_replace(
             [
                 '{{modelName}}',
-                '{{massAssignment}}'
+                '{{massAssignment}}',
+                '{{traitImport}}',
+                '{{traits}}'
             ],
             [
                 $name,
-                $massAssignment
+                $massAssignment,
+                $traitImport,
+                $traits
             ],
             $this->getStub('model')
         );
@@ -205,6 +250,12 @@ class CrudGenerator extends Command
 
     protected function controller_stub($name)
     {
+        $controller_stub = $this->getStub('controller');
+
+        if ($this->hasSoftDeletes() == true) {
+            $controller_stub = $this->getStub('soft_delete_controller');
+        }
+
         //gives model with replaced placeholder
         $template = str_replace(
             [
@@ -221,7 +272,7 @@ class CrudGenerator extends Command
                 $this->kebab_case_plural
             ],
 
-            $this->getStub('controller')
+            $controller_stub
         );
 
         //update placeholder_model with valued Model
@@ -239,6 +290,12 @@ class CrudGenerator extends Command
 
         $rows_for_index = $this->get_rows_for_index($fields, $this->snake_case);
         $thead_for_index = $this->get_thead_for_index($fields);
+
+        if ($this->hasSoftDeletes() == true) {
+            $index_stub = $this->getBladeStub('trashed_blade');
+        } else {
+            $index_stub = $this->getBladeStub('index_blade');
+        }
 
         $template1 = str_replace(
             [
@@ -258,7 +315,7 @@ class CrudGenerator extends Command
                 $rows_for_index,
                 $thead_for_index,
             ],
-            $this->getBladeStub('index_blade')
+            $index_stub
         );
 
         $template2 = str_replace(
@@ -369,6 +426,12 @@ class CrudGenerator extends Command
 
     protected function named_controller_stub($name, $folder_name)
     {
+        $controller_stub = $this->getStub('named_controller');
+
+        if ($this->hasSoftDeletes() == true) {
+            $controller_stub = $this->getStub('soft_delete_named_controller');
+        }
+
         //gives named controller stub with replaced placeholder
         $template = str_replace(
             [
@@ -389,7 +452,7 @@ class CrudGenerator extends Command
                 $this->kebab_case_plural
             ],
 
-            $this->getStub('named_controller')
+            $controller_stub
         );
 
         //create folder if it doesnot exist
@@ -403,11 +466,18 @@ class CrudGenerator extends Command
 
     protected function named_blade_stub($name, $folder_name, $fields)
     {
+        if ($this->hasSoftDeletes() == true) {
+            $index_stub = $this->getBladeStub('trashed_blade');
+        } else {
+            $index_stub = $this->getBladeStub('index_blade');
+        }
+
         $fieldsForCreate = $this->get_fields_for_create($fields);
 
         $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case);
 
         $rows_for_index = $this->get_rows_for_index($fields, $this->snake_case);
+
         $thead_for_index = $this->get_thead_for_index($fields);
 
         //$fieldsForCreateEdit = $this->get_fields_create_and_edit($fields, $this->snake_case);
@@ -430,7 +500,7 @@ class CrudGenerator extends Command
                 $rows_for_index,
                 $thead_for_index,
             ],
-            $this->getBladeStub('index_blade')
+            $index_stub
         );
 
         $template2 = str_replace(
@@ -512,6 +582,14 @@ class CrudGenerator extends Command
 
     protected function named_model_stub($name, $folder_name, $fields = '')
     {
+        $traitImport = '';
+        $traits = '';
+
+        if ($this->hasSoftDeletes() == true) {
+            $traitImport = 'use Illuminate\Database\Eloquent\SoftDeletes;';
+            $traits = 'use SoftDeletes;';
+        }
+
         $massAssignment = "protected \$guarded = [];";
 
         if ($fields != '') {
@@ -532,12 +610,16 @@ class CrudGenerator extends Command
             [
                 '{{modelName}}',
                 '{{folderName}}',
-                '{{massAssignment}}'
+                '{{massAssignment}}',
+                '{{traitImport}}',
+                '{{traits}}'
             ],
             [
                 $name,
                 $folder_name,
-                $massAssignment
+                $massAssignment,
+                $traitImport,
+                $traits
             ],
             $this->getStub('named_model')
         );
@@ -597,5 +679,13 @@ class CrudGenerator extends Command
         }
 
         copy(__DIR__ . '/../stubs/Traits/FileUploadTrait.php', app_path('/Traits/FileUploadTrait.php'));
+    }
+
+    protected function hasSoftDeletes()
+    {
+        if (is_bool($this->option('softDelete')) && $this->option('softDelete') === true) {
+            return true;
+        }
+        return false;
     }
 }

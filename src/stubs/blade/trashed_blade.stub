@@ -1,0 +1,58 @@
+@extends('layouts.main')
+
+@section('content')
+
+<div class="container">
+    <div class="card">
+
+        <div class="card-header d-flex justify-content-between">
+            <p class="lead m-0">{{modelName}} List</p>
+            <div>
+                <a href="{{route('{{modelNamePluralKebabCase}}.create')}}" class="btn btn-sm btn-dark">Create</a>
+                <a href="{{route('{{modelNamePluralKebabCase}}.index','archive')}}" class="btn btn-sm btn-info">Achived {{modelName}}</a>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+
+          <table class="table">
+
+            <thead>
+              <tr>
+                <th>SN</th>
+                {{theadForIndex}}<th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+                @forelse (${{modelNamePluralLowerCase}} as ${{modelNameSingularLowerCase}})
+                    <tr>
+                      <td>{{$loop->iteration}}</td>
+
+                      {{rowsForIndex}}
+                      @if(${{modelNameSingularLowerCase}}->trashed())
+                          <x-soft-delete-button routeRestore="{{route('{{modelNamePluralKebabCase}}.restore', ${{modelNameSingularLowerCase}}->id ) }}"
+                                                routeForceDelete="{{route('{{modelNamePluralKebabCase}}.force_delete', ${{modelNameSingularLowerCase}}->id) }}">
+                          </x-soft-delete-button>
+                      @else
+                          <x-list-button routeDestroy="{{route('{{modelNamePluralKebabCase}}.destroy', ${{modelNameSingularLowerCase}}->id ) }}"
+                                         routeEdit="{{route('{{modelNamePluralKebabCase}}.edit', ${{modelNameSingularLowerCase}}->id) }}">
+                          </x-list-button>
+                      @endif
+
+                    </tr>
+
+                @empty
+                    <td>No record</td>
+                @endforelse
+
+            </tbody>
+          </table>
+
+        </div>
+    </div>
+</div>
+
+@endsection

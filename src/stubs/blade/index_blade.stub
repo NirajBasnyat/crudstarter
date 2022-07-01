@@ -17,8 +17,7 @@
             <thead>
               <tr>
                 <th>SN</th>
-                {{theadForIndex}}<th>Delete</th>
-                <th>Edit</th>
+                {{theadForIndex}}<th>Actions</th>
               </tr>
             </thead>
 
