@@ -58,6 +58,13 @@ To add fields we use
 
 > **Note:** Please run auto-alignment (code-formatting) command in your ide/text-editor in generated blade files [eg: `` Ctrl+Alt+Shift+L`` in phpstorm].
 
+### Adding Soft-Deleting fuctionality
+to add this functionality simply add ``--softDelete`` in gen command
+
+> Example:  To generate Post CRUD with soft deletes
+
+> ``php artisan gen:crud Post --fields="name:str description:text" --softDelete``
+
 ### Adding File Upload Helper
 To add helper trait simply add ``--addFileTrait``
 > Example:  
