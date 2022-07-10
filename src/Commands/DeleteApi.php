@@ -27,20 +27,34 @@ class DeleteApi extends Command
         $this->tableArray = array();
 
         //define path
+        if ($this->confirm('Are CRUD files Placed inside Specific Folder?')) {
 
-        $this->model_path = app_path("/Models/{$name}.php");
-        $this->request_path = app_path("/Http/Requests/{$name}ApiRequest.php");
-        $this->test_path = base_path("/tests/Feature/{$name}ApiTest.php");
-        $this->controller_path = app_path("/Http/Controllers/Api/{$name}ApiController.php");
-        $this->resource_path = app_path("/Http/Resources/{$name}Resource.php");
+            $folder_name = $this->ask('Enter the Folder Name');
 
-        $this->is_valid_path();
+            $this->model_path = app_path("Models/{$folder_name}/{$name}.php");
+            $this->request_path = app_path("Http/Requests/{$folder_name}Api/{$name}ApiRequest.php");
+            $this->test_path = base_path("tests/Feature/{$name}ApiTest.php");
+            $this->controller_path = app_path("Http/Controllers/Api/{$folder_name}/{$name}ApiController.php");
+            $this->resource_path = app_path("Http/Resources/{$folder_name}/{$name}Resource.php");
+
+            $this->is_valid_path();
+
+        } else {
+            $this->model_path = app_path("/Models/{$name}.php");
+            $this->request_path = app_path("/Http/Requests/{$name}ApiRequest.php");
+            $this->test_path = base_path("/tests/Feature/{$name}ApiTest.php");
+            $this->controller_path = app_path("/Http/Controllers/Api/{$name}ApiController.php");
+            $this->resource_path = app_path("/Http/Resources/{$name}Resource.php");
+
+            $this->is_valid_path();
+        }
     }
 
     //checks if path/folder name is valid
 
     protected function is_valid_path()
     {
+
         if (file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->resource_path)) {
 
             $this->tableArray = [['Api Controller', '<info>deleted</info>'], ['Resource', '<info>deleted</info>'], ['Form Request', '<info>deleted</info>']];
@@ -56,8 +70,8 @@ class DeleteApi extends Command
             $this->delete_resource_path();
             $this->delete_test();
 
-            $this->showTableInfo($this->tableArray,'API Files deleted');
-            $this->warn('Please remove migration manually!!');
+            $this->showTableInfo($this->tableArray, 'API Files deleted');
+            $this->warn('Please remove migration and api routes manually!!');
         } else {
             $this->error('Failed to Delete , Make sure File exist, FileName is correct or Folder is Named');
         }
