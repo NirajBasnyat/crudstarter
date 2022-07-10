@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Controllers\Api\{{folderName}};
+
+use App\Models\{{folderName}}\{{modelName}};
+use App\Http\Controllers\Controller;
+use App\Http\Requests\{{folderName}}Api\{{modelName}}ApiRequest;
+use App\Http\Resources\{{folderName}}\{{modelName}}Resource;
+
+class {{modelName}}ApiController extends Controller
+{
+    public function index()
+    {
+        return {{modelName}}Resource::collection({{modelName}}::all());
+    }
+
+    public function store({{modelName}}ApiRequest $request)
+    {
+        ${{modelNameSingularLowerCase}} = {{modelName}}::create($request->validated());
+
+        return response()->json(${{modelNameSingularLowerCase}}, 201);
+    }
+
+    public function show({{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        return response()->json(${{modelNameSingularLowerCase}});
+    }
+
+    public function update({{modelName}}ApiRequest $request, {{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        ${{modelNameSingularLowerCase}}->update($request->validated());
+
+        return response()->json(${{modelNameSingularLowerCase}}, 200);
+    }
+
+    public function destroy({{modelName}} ${{modelNameSingularLowerCase}})
+    {
+        ${{modelNameSingularLowerCase}}->delete();
+
+        return response()->json(null, 204);
+    }
+}

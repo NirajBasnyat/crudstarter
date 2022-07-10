@@ -1,0 +1,67 @@
+<?php
+
+namespace Tests\Feature;
+
+use Tests\TestCase;
+use App\Models\{{folderName}}\{{modelName}};
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class {{modelName}}ApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private $make{{modelName}};
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->make{{modelName}} = $this->postJson('api/{{modelNamePluralLowerCase}}', [
+           {{createTestFields}}
+        ]);
+    }
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_can_be_created_via_api() :void
+    {
+        $response = $this->make{{modelName}};
+        $response->assertStatus(201);
+
+        $this->assertCount(1, {{modelName}}::all());
+    }
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_can_be_deleted_via_api() :void
+    {
+        //storing {{modelNameSingularLowerCase}}
+        $this->make{{modelName}};
+
+        $this->assertCount(1, {{modelName}}::all());
+
+        //deleting stored {{modelNameSingularLowerCase}}
+        ${{modelNameSingularLowerCase}} = {{modelName}}::first();
+        ${{modelNameSingularLowerCase}}->delete('/api/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id);
+
+        $this->assertCount(0, {{modelName}}::all());
+    }
+
+    /** @test */
+    public function {{modelNameSingularLowerCase}}_can_be_updated_via_api() :void
+    {
+        //storing {{modelNameSingularLowerCase}}
+        $this->make{{modelName}};
+
+        $this->assertCount(1, {{modelName}}::all());
+
+        //updating stored {{modelNameSingularLowerCase}}
+        ${{modelNameSingularLowerCase}} = {{modelName}}::first();
+
+        $this->patchJson('/api/{{modelNamePluralLowerCase}}/' . ${{modelNameSingularLowerCase}}->id, [
+            {{updateTestFields}}
+        ])->assertStatus(200);
+
+        $this->assertNotEquals(${{modelNameSingularLowerCase}}->{{firstFieldForUpdate}}, {{modelName}}::first()->{{firstFieldForUpdate}});
+
+        $this->assertCount(1, {{modelName}}::all());
+    }
+}
