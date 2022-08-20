@@ -131,7 +131,7 @@ class CrudGenerator extends Command
     protected function getStub($type)
     {
         //dd("$this->stub_path/$type.stub");
-        return file_get_contents("$this->stub_path/$type.stub");
+        return file_get_contents("$this->stub_path/crud_stubs/$type.stub");
     }
 
     protected function getBladeStub($type)
