@@ -14,7 +14,7 @@ class CrudGenerator extends Command
 {
     use tableTrait, logoTrait, CommonCode;
 
-    protected $signature = "gen:crud {name} {--fields=} {{--addFileTrait}} {{--softDelete}}";
+    protected $signature = "gen:crud {name} {--fields=} {{--relations=}} {{--addFileTrait}} {{--softDelete}}";
 
     protected $description = 'Generates Basic Laravel Crud :)';
 
@@ -34,6 +34,7 @@ class CrudGenerator extends Command
     {
         $name = $this->argument('name');
         $fields = $this->option('fields');
+        $relations = $this->option('relations');
         $addFileTrait = $this->option('addFileTrait');
         $softDelete = $this->option('softDelete');
 
@@ -74,7 +75,7 @@ class CrudGenerator extends Command
 
             $this->named_controller_stub($name, $folder_name);
             $this->named_request_stub($name, $folder_name, $fields);
-            $this->named_model_stub($name, $folder_name, $fields);
+            $this->named_model_stub($name, $folder_name, $fields, $relations);
             $this->named_blade_stub($name, $folder_name, $fields);
 
             //to generate test
@@ -106,7 +107,7 @@ class CrudGenerator extends Command
 
             $this->controller_stub($name);
             $this->request_stub($name, $fields);
-            $this->model_stub($name, $fields);
+            $this->model_stub($name, $fields, $relations);
             $this->blade_stub($name, $fields);
 
             //to generate test
@@ -172,7 +173,7 @@ class CrudGenerator extends Command
         file_put_contents($path, $template);
     }
 
-    protected function model_stub($name, $fields = '')
+    protected function model_stub($name, $fields = '', $relations = '')
     {
         $traitImport = '';
         $traits = '';
@@ -183,6 +184,10 @@ class CrudGenerator extends Command
         }
 
         $massAssignment = "protected \$guarded = [];";
+
+        if ($relations != '') {
+            $processed_relations = $this->setRelationships($relations);
+        }
 
         if ($fields != '') {
 
@@ -203,13 +208,15 @@ class CrudGenerator extends Command
                 '{{modelName}}',
                 '{{massAssignment}}',
                 '{{traitImport}}',
-                '{{traits}}'
+                '{{traits}}',
+                '{{relationships}}'
             ],
             [
                 $name,
                 $massAssignment,
                 $traitImport,
-                $traits
+                $traits,
+                $processed_relations,
             ],
             $this->getStub('model')
         );
@@ -580,7 +587,7 @@ class CrudGenerator extends Command
         file_put_contents(app_path("/Http/Requests/{$folder_name}/{$name}Request.php"), $template);
     }
 
-    protected function named_model_stub($name, $folder_name, $fields = '')
+    protected function named_model_stub($name, $folder_name, $fields = '', $relations = '')
     {
         $traitImport = '';
         $traits = '';
@@ -591,6 +598,10 @@ class CrudGenerator extends Command
         }
 
         $massAssignment = "protected \$guarded = [];";
+
+        if ($relations != '') {
+            $processed_relations = $this->setRelationships($relations, $folder_name);
+        }
 
         if ($fields != '') {
 
@@ -612,14 +623,16 @@ class CrudGenerator extends Command
                 '{{folderName}}',
                 '{{massAssignment}}',
                 '{{traitImport}}',
-                '{{traits}}'
+                '{{traits}}',
+                '{{relationships}}',
             ],
             [
                 $name,
                 $folder_name,
                 $massAssignment,
                 $traitImport,
-                $traits
+                $traits,
+                $processed_relations,
             ],
             $this->getStub('named_model')
         );
@@ -684,6 +697,14 @@ class CrudGenerator extends Command
     protected function hasSoftDeletes()
     {
         if (is_bool($this->option('softDelete')) && $this->option('softDelete') === true) {
+            return true;
+        }
+        return false;
+    }
+
+    protected function hasRelations()
+    {
+        if (is_bool($this->option('relations')) && $this->option('relations') === true) {
             return true;
         }
         return false;

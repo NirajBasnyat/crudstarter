@@ -13,4 +13,6 @@ class {{modelName}} extends Model
 
     {{massAssignment}}
 
+    {{relationships}}
+
 }

@@ -4,6 +4,8 @@
 namespace Niraj\CrudStarter\Traits;
 
 
+use Illuminate\Support\Str;
+
 trait CommonCode
 {
     protected function resolve_migration($fields = ''): string
@@ -371,7 +373,64 @@ trait CommonCode
         return $theadRows;
     }
 
-    // ---------------------------------------------------------------------
+    // ----------------------------CODE OF RELATIONSHIP-----------------------------------------
+
+    protected function setRelationships(string $relations, string $folder_name = ''): string
+    {
+        $relationsLookUp = [
+            'haso' => "hasOne",
+            'hasm' => "hasMany",
+            'belt' => "belongsTo",
+            'belm' => "belongsToMany",
+        ];
+
+        $relationsCode = '';
+
+        if ($relations != '') {
+
+            $data = $this->resolve_fields($relations);
+
+            $relationsCode = $this->get_code_for_relations($data, $relationsLookUp, $folder_name);
+        }
+
+        return $relationsCode;
+    }
+
+    protected function get_code_for_relations(array $data, array $relationsLookUp, string $folder_name): string
+    {
+        /*   "name" => "belongsTo"
+             "type" => "User"
+         */
+
+        $relation_code = '';
+
+        foreach ($data as $item) {
+            $relation_code .= 'public function ' . $item['type'] . '(){' . PHP_EOL;
+
+            if ($folder_name != '') {
+                if (isset($relationsLookUp[$item['name']])) {
+                    $_name = $relationsLookUp[$item['name']];
+                    $relation_code .= 'return $this->' . $_name . '(\\App\\Model\\' . $folder_name . '\\' . Str::ucfirst(Str::singular($item['type'])) . '::class);' . PHP_EOL;
+                } else {
+                    $relation_code .= 'return $this->' . $item['name'] . '(' . Str::ucfirst(Str::singular($item['type'])) . '::class);' . PHP_EOL;
+                }
+            } else {
+                if (isset($relationsLookUp[$item['name']])) {
+                    $_name = $relationsLookUp[$item['name']];
+                    $relation_code .= 'return $this->' . $_name . '(' . Str::ucfirst(Str::singular($item['type'])) . '::class);' . PHP_EOL;
+                } else {
+                    $relation_code .= 'return $this->' . $item['name'] . '(' . Str::ucfirst(Str::singular($item['type'])) . '::class);' . PHP_EOL;
+                }
+            }
+
+
+            $relation_code .= '}' . PHP_EOL. PHP_EOL;
+        }
+
+        return $relation_code;
+    }
+
+    // ----------------------------END OF CODE OF RELATIONSHIP-----------------------------------------
 
 
     //extracted functions
