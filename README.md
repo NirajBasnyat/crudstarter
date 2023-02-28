@@ -58,6 +58,22 @@ To add fields we use
 
 > **Note:** Please run auto-alignment (code-formatting) command in your ide/text-editor in generated blade files [eg: `` Ctrl+Alt+Shift+L`` in phpstorm].
 
+### Adding Relationships
+to add this functionality simply add ``--relations="your code here"`` in gen command
+
+> Example:  To generate Profile CRUD with relations (hasOne: Account, hasMany: Blogs and belongTo: User)   
+
+> ``php artisan gen:crud Profile --fields="name:str user_id:fid" --relations="haso:account hasm:blogs belt:user"``
+
+|Relation Name| Short Hand For        |
+| ----------- | -----------------     |
+| haso		  | hasOne                |
+| hasm        | hasMany               |
+| belt        | belongsTo             |
+| belm        | belongsToMany         |
+
+> **Note**: you can use ``hasMany``, ``belongsTo`` etc directly in --relations command if you feel comfortable and it currently only supports these 4 common relations type.
+
 ### Adding Soft-Deleting fuctionality
 to add this functionality simply add ``--softDelete`` in gen command
 
