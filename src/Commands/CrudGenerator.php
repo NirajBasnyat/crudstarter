@@ -177,6 +177,7 @@ class CrudGenerator extends Command
     {
         $traitImport = '';
         $traits = '';
+        $processed_relations = '';
 
         if ($this->hasSoftDeletes() == true) {
             $traitImport = 'use Illuminate\Database\Eloquent\SoftDeletes;';
@@ -185,7 +186,7 @@ class CrudGenerator extends Command
 
         $massAssignment = "protected \$guarded = [];";
 
-        if ($relations != '') {
+        if (!is_null($relations)) {
             $processed_relations = $this->setRelationships($relations);
         }
 
