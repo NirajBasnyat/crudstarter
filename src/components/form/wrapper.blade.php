@@ -1,6 +1,9 @@
-<form action="{{$action}}" method="{{$method ?? 'POST'}}"
-      @isset($enctype) enctype="multipart/form-data" @endisset
->
+@props([
+  'method' => 'POST',
+  'action'
+])
+
+<form action="{{$action}}" method="{{$method}}" {{ $attributes }}>
     @csrf
 
     {{ $slot }}

@@ -1,48 +1,59 @@
-@extends('layouts.main')
+@extends('layouts.master')
 
 @section('content')
 
-<div class="container">
-    <div class="card">
+<div class="container-xxl">
 
-        <div class="card-header d-flex justify-content-between">
-            <p class="lead m-0">{{modelName}} List</p>
-            <a href="{{route('{{modelNamePluralKebabCase}}.create')}}" class="btn btn-sm btn-dark">Create</a>
-        </div>
+     <x-breadcrumb model="{{modelName}}"></x-breadcrumb>
+
+    <div class="card">
 
         <div class="card-body">
 
-          <table class="table">
+          <div class="d-flex justify-content-end">
+            <a href="{{route('{{folderName}}{{modelNamePluralKebabCase}}.create')}}" class="btn btn-sm btn-dark mb-2"><i class='bx bx-xs bx-plus'> </i>Create</a>
+          </div>
 
-            <thead>
-              <tr>
-                <th>SN</th>
-                {{theadForIndex}}<th>Actions</th>
-              </tr>
-            </thead>
+        <div class="table-responsive no-wrap">
+          <table class="table" id="datatable">
 
-            <tbody>
+           {{theadForIndex}}
 
+             <tbody id="tablecontents">
                 @forelse (${{modelNamePluralLowerCase}} as ${{modelNameSingularLowerCase}})
                     <tr>
                       <td>{{$loop->iteration}}</td>
 
                       {{rowsForIndex}}
-                        <x-list-button routeDestroy="{{route('{{modelNamePluralKebabCase}}.destroy', ${{modelNameSingularLowerCase}}->id ) }}"
-                                       routeEdit="{{route('{{modelNamePluralKebabCase}}.edit', ${{modelNameSingularLowerCase}}->id) }}">
-                        </x-list-button>
 
+                      <td style="width:150px">
+                            <div class="actions d-flex">
+                                <x-table.view_btn route-view="{{route('{{folderName}}{{modelNamePluralKebabCase}}.show', ':id')}}" id="{{${{modelNameSingularLowerCase}}->id}}" model="{{modelName}}" name="{{modelNameSingularLowerCase}}"/>
+
+                                <x-table.edit_btn route-edit="{{route('{{folderName}}{{modelNamePluralKebabCase}}.edit', ${{modelNameSingularLowerCase}}->id) }}"/>
+
+                                <x-table.delete_btn route-destroy="{{route('{{folderName}}{{modelNamePluralKebabCase}}.destroy', ${{modelNameSingularLowerCase}}->id ) }}"/>
+                            </div>
+                      </td>
                     </tr>
 
+                    <x-table.show_modal id="{{${{modelNameSingularLowerCase}}->id}}" model="{{modelName}}" />
+
                 @empty
-                    <td>No record</td>
                 @endforelse
 
             </tbody>
           </table>
-
+          </div>
         </div>
     </div>
 </div>
 
 @endsection
+
+@push('custom_js')
+    @include('_helpers.modal_script',['name' => '{{modelNameSingularLowerCase}}', 'route' => route('{{folderName}}{{modelNamePluralKebabCase}}.show', ':id')])
+    @include('_helpers.datatable')
+    {{statusChangeHelperCode}}
+    @include('_helpers.swal_delete')
+@endpush

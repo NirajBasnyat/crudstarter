@@ -5,103 +5,121 @@ namespace Niraj\CrudStarter\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Niraj\CrudStarter\Traits\CommonCode;
 use Niraj\CrudStarter\Traits\logoTrait;
+use Niraj\CrudStarter\Traits\ResolveCodeTrait;
 use Niraj\CrudStarter\Traits\tableTrait;
 
 class ApiGenerator extends Command
 {
-    use tableTrait, logoTrait, CommonCode;
+    use tableTrait, logoTrait, ResolveCodeTrait;
 
-    protected $signature = 'gen:api {name} {--fields=}';
+    protected $signature = 'gen:api {name} {--fields=} {{--relations=}} {{--addFileTrait}} {{--softDelete}}';
 
-    protected $description = 'Generates Basic Laravel Api :D';
+    protected $description = 'Generates Laravel Api';
 
     public function __construct()
     {
         parent::__construct();
 
-        if (file_exists(resource_path('crud-stub'))) {
+        $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
+
+        /*if (file_exists(resource_path('crud-stub'))) {
             $this->stub_path = resource_path('crud-stub');
         } else {
             $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
-        }
+        }*/
     }
 
     public function handle()
     {
         $name = $this->argument('name');
         $fields = $this->option('fields');
+        $relations = $this->option('relations');
+        $addFileTrait = $this->option('addFileTrait');
+        $softDelete = $this->option('softDelete');
 
-        //traits
-        $this->tableArray = array();
-        $this->show_logo();
+        $this->initializeVariables($name);
 
-        //define variable
-        $this->plural = Str::plural($name);
-        $this->snake_case = Str::snake($name);
-        $this->snake_case_plural = Str::plural(Str::snake($name));
-        $this->kebab_case_plural = Str::plural(Str::kebab($name));
-
-        if ($this->confirm('Do you want to add controllers in specific folder ?')) {
-
+        if ($this->confirm('Do you want to add controllers in a specific folder?')) {
             $folder_name = $this->ask('Enter the Folder Name');
-
-            //add api resource controller in api.php
-            File::append(
-                base_path('routes/api.php'),
-                'Route::apiResource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\Api\\" . $folder_name . "\\" . $name . "ApiController::class);" . PHP_EOL
-            );
-
-            $this->named_api_controller_stub($name, $folder_name);
-            $this->named_resource_stub($name, $folder_name, $fields);
-            $this->named_api_request_stub($name, $folder_name, $fields);
-
-            if ($this->confirm('Do you wish to generate Model and Migration ?')) {
-                $this->named_model_stub($name, $folder_name, $fields);
-                $this->migration_stub($name, $fields);
-
-                $this->tableArray [] = ['Model', '<info>created</info>'];
-                $this->tableArray [] = ['Migration', '<info>created</info>'];
-            }
-
-            //to generate test
-            if ($fields != '') {
-                if ($this->confirm('Do you wish to generate Test?')) {
-                    $this->named_api_feature_test_stub($name, $folder_name, $fields);
-                    $this->tableArray[] = ['Feature Test', '<info>created</info>'];
-                }
-            }
-
+            $this->addRoutesAndFiles($folder_name, $name, $fields, $relations);
         } else {
-
-            File::append(base_path('routes/api.php'),
-                'Route::apiResource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\Api\\" . $name . "ApiController::class);" . PHP_EOL);
-
-            //call generation methods
-            $this->api_controller_stub($name);
-            $this->resource_stub($name, $fields);
-            $this->api_request_stub($name, $fields);
-
-            if ($this->confirm('Do you wish to generate Model and Migration ?')) {
-                $this->model_stub($name, $fields);
-                $this->migration_stub($name, $fields);
-
-                $this->tableArray [] = ['Model', '<info>created</info>'];
-                $this->tableArray [] = ['Migration', '<info>created</info>'];
-            }
-
-            if ($fields != '') {
-                if ($this->confirm('Do you wish to generate Tests for Api?')) {
-                    $this->api_feature_test_stub($name, $fields);
-                    $this->tableArray [] = ['Feature Test', '<info>created</info>'];
-                }
-            }
+            $this->addRoutesAndFiles(null, $name, $fields, $relations);
         }
 
-        $this->tableArray = [['Api Controller', '<info>created</info>'], ['Resource', '<info>created</info>'], ['Form Request', '<info>created</info>']];
+        if (is_bool($addFileTrait) && $addFileTrait === true) {
+            $this->add_file_trait();
+        }
 
-        $this->showTableInfo($this->tableArray, 'API generated');
+        $this->showTableInfo($this->tableArray, 'API Generated');
+    }
+
+    protected function initializeVariables($name)
+    {
+        $this->tableArray = [];
+        $this->show_logo();
+        $this->plural = Str::plural($name);
+        $this->snake_case = Str::snake($name);
+        $this->snake_case_plural = Str::plural($this->snake_case);
+        $this->kebab_case_plural = Str::plural(Str::kebab($name));
+    }
+
+    protected function addRoutesAndFiles($folder_name, $name, $fields, $relations)
+    {
+        $hasSoftDeletes = $this->hasSoftDeletes();
+
+        $data = '';
+        $data .= 'Route::post(\''.$this->kebab_case_plural.'/{id}/restore'.'\',[\\App\Http\Controllers\Api\\'.($folder_name ? $folder_name."\\" : '').$name.'ApiController::class,'.'\'restore'.'\'])->name(\''.$this->kebab_case_plural.'.restore\');'.PHP_EOL;
+        $data .= 'Route::post(\''.$this->kebab_case_plural.'/{id}/force-delete'.'\',[\\App\Http\Controllers\Api\\'.($folder_name ? $folder_name."\\" : '').$name.'ApiController::class,'.'\'forceDelete'.'\'])->name(\''.$this->kebab_case_plural.'.force_delete\');'.PHP_EOL;
+        $data .= 'Route::apiResource(\''.$this->kebab_case_plural."',\\App\Http\Controllers\Api\\".($folder_name ? $folder_name."\\" : '').$name."ApiController::class);".PHP_EOL;
+
+        if ($hasSoftDeletes) {
+            File::append(base_path('routes/api.php'), $data);
+        } else {
+            File::append(base_path('routes/api.php'), 'Route::apiResource(\''.$this->kebab_case_plural."',\\App\Http\Controllers\Api\\".($folder_name ? $folder_name."\\" : '').$name."ApiController::class);".PHP_EOL);
+        }
+
+        if ($folder_name) {
+            $this->generate_api_controller_stub($name, $folder_name, $fields);
+            $this->generate_resource_stub($name, $folder_name, $fields);
+            $this->generate_api_request_stub($name, $folder_name, $fields);
+
+            if ($this->confirm('Do you wish to generate Model and Migration ?')) {
+                $this->generate_model_stub($name, $folder_name, $fields, $relations);
+                $this->generate_migration_stub($name, $fields);
+
+                $this->tableArray [] = ['Model', '<info>Created</info>'];
+                $this->tableArray [] = ['Migration', '<info>Created</info>'];
+
+                //TODO generate test
+                /*  if ($fields != '') {
+                      if ($this->confirm('Do you wish to generate Test?')) {
+                          $this->named_api_feature_test_stub($name, $folder_name, $fields);
+                          $this->tableArray[] = ['Feature Test', '<info>Created</info>'];
+                      }
+                  }*/
+            }
+        } else {
+            $this->generate_api_controller_stub($name, null, $fields);
+            $this->generate_resource_stub($name, null, $fields);
+            $this->generate_api_request_stub($name, null, $fields);
+
+            if ($this->confirm('Do you wish to generate Model and Migration ?')) {
+                $this->generate_model_stub($name, null, $fields, $relations);
+                $this->generate_migration_stub($name, $fields);
+
+                $this->tableArray [] = ['Model', '<info>Created</info>'];
+                $this->tableArray [] = ['Migration', '<info>Created</info>'];
+            }
+
+            /*if ($fields != '') {
+                if ($this->confirm('Do you wish to generate Tests for Api?')) {
+                    $this->api_feature_test_stub($name, $fields);
+                    $this->tableArray [] = ['Feature Test', '<info>Created</info>'];
+                }
+            }*/
+        }
+        $this->tableArray = array_merge($this->tableArray, [['Api Controller', '<info>Created</info>'], ['Api Resource', '<info>Created</info>'], ['Form Request', '<info>Created</info>']]);
     }
 
     protected function getStub($type)
@@ -114,190 +132,144 @@ class ApiGenerator extends Command
         return file_get_contents("$this->stub_path/api_stubs/$type.stub");
     }
 
-    protected function api_controller_stub($name)
-    {
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
-            ],
-
-            [
-                $name,
-                $this->snake_case
-            ],
-
-            $this->getApiStub('api_controller')
-        );
-
-        //create folder if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Controllers/Api"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Controllers/Api/{$name}ApiController.php"), $template);
-    }
-
-    protected function resource_stub($name, $fields = '')
+    protected function generate_resource_stub(string $name, ?string $folder_name, string $fields = '')
     {
         $resourceContent = '';
 
         if ($fields != '') {
-
             $fieldsArray = explode(' ', $fields);
+            $data = [];
 
-            $data = array();
-
-            $iteration = 0;
             foreach ($fieldsArray as $field) {
                 $fieldArraySingle = explode(':', $field);
-                $data[$iteration]['name'] = trim($fieldArraySingle[0]);
-
-                $iteration++;
+                $data[] = ['name' => trim($fieldArraySingle[0])];
             }
 
             foreach ($data as $item) {
-                $resourceContent .= "'" . $item['name'] . "' " . '=> ' . "\$this->" . $item['name'] . ',' . PHP_EOL . '            ';
+                $resourceContent .= "'{$item['name']}' => \$this->{$item['name']},\n            ";
             }
         }
 
-        //gives model with replaced placeholder
         $template = str_replace(
             [
                 '{{modelName}}',
+                '{{folderName}}',
                 '{{resourceContent}}'
             ],
             [
                 $name,
+                $folder_name ?? '',
                 $resourceContent
             ],
-
-            $this->getApiStub('resource')
+            $this->getApiStub($folder_name ? 'named_resource' :'resource')
         );
 
-        //create folder if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Resources"))) {
+        //create folder if it does not exist
+        $path = app_path("/Http/Resources".($folder_name ? "/".$folder_name : ""));
+
+        if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }
 
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Resources/{$name}Resource.php"), $template);
+        file_put_contents("{$path}/{$name}Resource.php", $template);
     }
 
-    protected function api_request_stub($name, $fields)
+
+    protected function generate_api_request_stub($name, $folder_name, $fields)
     {
         $validationRules = $this->resolve_request($fields);
-
+        // Gives model with replaced placeholder
         $template = str_replace(
             [
                 '{{modelName}}',
+                '{{folderName}}',
                 '{{validationRules}}'
             ],
             [
                 $name,
+                $folder_name ?? '',
                 $validationRules
             ],
-            $this->getApiStub('api_request')
+            $this->getApiStub($folder_name ? 'named_api_request' : 'api_request')
         );
 
-        //create file dir if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Requests"))) {
+        // Create file dir if it does not exist
+        $path = app_path("/Http/Requests/").($folder_name ? "/{$folder_name}Api" : 'Api');
+
+        if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }
 
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Requests/{$name}ApiRequest.php"), $template);
-
-        $api_form_request = $this->getApiStub('ApiFormRequest');
-
-        if (!file_exists(app_path("/Http/Requests/ApiFormRequest.php"))) {
-            file_put_contents(app_path("/Http/Requests/ApiFormRequest.php"), $api_form_request);
-        }
+        // Update placeholder_model with valued Model
+        file_put_contents("{$path}/{$name}ApiRequest.php", $template);
     }
 
-    //FOR TEST
-    protected function api_feature_test_stub($name, $fields)
-    {
-        $createTestFields = $this->resolve_create_test_fields($fields);
-
-        $updateTestFields = $this->resolve_update_test_fields($fields);
-
-        $firstFieldForUpdate = $this->resolve_first_of_update_field($fields);
-
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}',
-                '{{createTestFields}}',
-                '{{updateTestFields}}',
-                '{{firstFieldForUpdate}}'
-            ],
-
-            [
-                $name,
-                $this->snake_case,
-                $this->kebab_case_plural,
-                $createTestFields,
-                $updateTestFields,
-                $firstFieldForUpdate
-            ],
-            $this->getApiStub('api_feature_test')
-        );
-
-        //update placeholder_model with valued Model
-        file_put_contents(base_path("/tests/Feature/{$name}ApiTest.php"), $template);
-    }
 
     //  FOR ADDITIONAL GENERATION
 
-    protected function model_stub($name, $fields = '')
+    private function generate_model_stub($name, $folder_name, $fields, $relations)
     {
         $traitImport = '';
         $traits = '';
 
+        if ($this->hasSoftDeletes() == true) {
+            $traitImport = 'use Illuminate\Database\Eloquent\SoftDeletes;';
+            $traits = 'use SoftDeletes;';
+        }
+
+        $fileTraitCodes = $this->resolve_model_should_have_file_trait($fields);
+
         $massAssignment = "protected \$guarded = [];";
 
-        if ($fields != '') {
+        $processed_relations = '';
 
-            $fieldsArray = explode(' ', $fields);
-
-            foreach ($fieldsArray as $item) {
-                $single_value = explode(':', trim($item));
-                $fillableArray[] = $single_value[0];
-            }
-
-            $commaSeparetedString = implode("', '", $fillableArray);
-
-            $massAssignment = "protected \$fillable = ['" . $commaSeparetedString . "'];";
+        if (!is_null($relations)) {
+            $processed_relations = $this->setRelationships($relations, $folder_name);
         }
-        //gives model with replaced placeholder
+
+        // Gives model with replaced placeholder
         $template = str_replace(
             [
                 '{{modelName}}',
+                '{{folderName}}',
                 '{{massAssignment}}',
                 '{{traitImport}}',
-                '{{traits}}'
+                '{{traits}}',
+                '{{relationships}}',
+                '{{fileTraitImport}}',
+                '{{fileTrait}}',
             ],
             [
                 $name,
+                $folder_name ?? '',
                 $massAssignment,
                 $traitImport,
-                $traits
+                $traits,
+                $processed_relations,
+                $fileTraitCodes['traitImport'],
+                $fileTraitCodes['trait']
             ],
-            $this->getStub('model')
+            $this->getStub($folder_name ? 'named_model' : 'model')
         );
 
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Models/{$name}.php"), $template);
+        // Create directory if it does not exist
+        $path = app_path("/Models");
+
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        }
+
+        // Update placeholder_model with the valued Model
+        file_put_contents("{$path}/{$name}.php", $template);
     }
 
-    protected function migration_stub($name, $fields)
+    protected function generate_migration_stub(string $name, string $fields = '')
     {
         $softDelete = '';
+
+        if ($this->hasSoftDeletes() == true) {
+            $softDelete = '$table->softDeletes();';
+        }
 
         $migrationSchema = $this->resolve_migration($fields);
 
@@ -320,169 +292,67 @@ class ApiGenerator extends Command
             $this->getStub('migration')
         );
 
-        $path = database_path('/migrations/') . date('Y_m_d_His') . '_create_' . $this->snake_case_plural . '_table.php';
+        $path = database_path('/migrations/').date('Y_m_d_His').'_create_'.$this->snake_case_plural.'_table.php';
 
         file_put_contents($path, $template);
     }
 
     //FOR NAMED/ FOLDERED GENERATION
 
-    protected function named_api_controller_stub($name, $folder_name)
+    private function generate_api_controller_stub(string $name, $folder_name, string $fields)
     {
-        //gives model with replaced placeholder
-        $template = str_replace(
+        $methodCodes = $this->generate_controller_method_codes($name, $fields);
+
+        $controller_stub = $this->getApiStub('api_controller');
+
+        if ($this->hasSoftDeletes() == true) {
+            $controller_stub = $this->getApiStub('soft_delete_api_controller');
+        }
+
+        if ($folder_name) {
+            $controller_stub = $this->getApiStub('named_api_controller');
+
+             if ($this->hasSoftDeletes() == true) {
+                 $controller_stub = $this->getApiStub('soft_delete_named_api_controller');
+             }
+        }
+
+        $controllerTemplate = str_replace(
             [
+                '{{folderName}}',
+                '{{folderNameSnakeCase}}',
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
-                '{{folderName}}'
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNamePluralKebabCase}}',
+                '{{storeMethodCode}}',
+                '{{updateMethodCode}}',
+                '{{deleteMethodCode}}'
             ],
-
             [
+                $folder_name ?? '',
+                $folder_name ? Str::snake($folder_name) : '',
                 $name,
                 $this->snake_case,
-                $folder_name
+                $this->snake_case_plural,
+                $this->kebab_case_plural,
+                $methodCodes['store'],
+                $methodCodes['update'],
+                $methodCodes['delete'],
             ],
-
-            $this->getApiStub('named_api_controller')
+            $controller_stub
         );
 
-        //create folder if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Controllers/Api/{$folder_name}"))) {
+        $path = app_path("/Http/Controllers/").($folder_name ? "/{$folder_name}Api" : 'Api');
+
+        if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }
 
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Controllers/Api/{$folder_name}/{$name}ApiController.php"), $template);
+        // Update placeholder_model with valued Model
+        file_put_contents("{$path}/{$name}ApiController.php", $controllerTemplate);
     }
 
-    protected function named_resource_stub($name, $folder_name, $fields = '')
-    {
-        $resourceContent = '';
-
-        if ($fields != '') {
-
-            $fieldsArray = explode(' ', $fields);
-
-            $data = array();
-
-            $iteration = 0;
-            foreach ($fieldsArray as $field) {
-                $fieldArraySingle = explode(':', $field);
-                $data[$iteration]['name'] = trim($fieldArraySingle[0]);
-
-                $iteration++;
-            }
-
-            foreach ($data as $item) {
-                $resourceContent .= "'" . $item['name'] . "' " . '=> ' . "\$this->" . $item['name'] . ',' . PHP_EOL . '            ';
-            }
-        }
-
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{folderName}}',
-                '{{resourceContent}}'
-            ],
-            [
-                $name,
-                $folder_name,
-                $resourceContent
-            ],
-
-            $this->getApiStub('named_resource')
-        );
-
-        //create folder if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Resources/{$folder_name}"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Resources/{$folder_name}/{$name}Resource.php"), $template);
-    }
-
-    protected function named_api_request_stub($name, $folder_name, $fields)
-    {
-        $validationRules = $this->resolve_request($fields);
-
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{folderName}}',
-                '{{validationRules}}'
-            ],
-            [
-                $name,
-                $folder_name,
-                $validationRules
-            ],
-            $this->getApiStub('named_api_request')
-        );
-
-        //create file dir if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Requests/{$folder_name}Api"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Requests/{$folder_name}Api/{$name}ApiRequest.php"), $template);
-
-        $api_form_request = $this->getApiStub('ApiFormRequest');
-
-        if (!file_exists(app_path("/Http/Requests/ApiFormRequest.php"))) {
-            file_put_contents(app_path("/Http/Requests/ApiFormRequest.php"), $api_form_request);
-        }
-    }
-
-    protected function named_model_stub($name, $folder_name, $fields = '')
-    {
-        $traitImport = '';
-        $traits = '';
-
-        $massAssignment = "protected \$guarded = [];";
-
-        if ($fields != '') {
-
-            $fieldsArray = explode(' ', $fields);
-
-            foreach ($fieldsArray as $item) {
-                $single_value = explode(':', trim($item));
-                $fillableArray[] = $single_value[0];
-            }
-
-            $commaSeparetedString = implode("', '", $fillableArray);
-
-            $massAssignment = "protected \$fillable = ['" . $commaSeparetedString . "'];";
-        }
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{folderName}}',
-                '{{massAssignment}}',
-                '{{traitImport}}',
-                '{{traits}}'
-            ],
-            [
-                $name,
-                $folder_name,
-                $massAssignment,
-                $traitImport,
-                $traits
-            ],
-            $this->getStub('named_model')
-        );
-
-        //create file dir if it doesnot exist
-        if (!file_exists($path = app_path("/Models/{$folder_name}"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Models/{$folder_name}/{$name}.php"), $template);
-    }
 
     //FOR TEST
     protected function named_api_feature_test_stub($name, $folder_name, $fields)
@@ -521,4 +391,43 @@ class ApiGenerator extends Command
         file_put_contents(base_path("/tests/Feature/{$name}ApiTest.php"), $template);
     }
 
+    //FOR TEST
+    protected function api_feature_test_stub($name, $fields)
+    {
+        $createTestFields = $this->resolve_create_test_fields($fields);
+
+        $updateTestFields = $this->resolve_update_test_fields($fields);
+
+        $firstFieldForUpdate = $this->resolve_first_of_update_field($fields);
+
+        //gives model with replaced placeholder
+        $template = str_replace(
+            [
+                '{{modelName}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{createTestFields}}',
+                '{{updateTestFields}}',
+                '{{firstFieldForUpdate}}'
+            ],
+
+            [
+                $name,
+                $this->snake_case,
+                $this->kebab_case_plural,
+                $createTestFields,
+                $updateTestFields,
+                $firstFieldForUpdate
+            ],
+            $this->getApiStub('api_feature_test')
+        );
+
+        //update placeholder_model with valued Model
+        file_put_contents(base_path("/tests/Feature/{$name}ApiTest.php"), $template);
+    }
+
+    protected function hasSoftDeletes(): bool
+    {
+        return is_bool($this->option('softDelete')) && $this->option('softDelete') === true;
+    }
 }

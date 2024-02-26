@@ -2,29 +2,30 @@
 
 namespace Niraj\CrudStarter;
 
+use Illuminate\Support\ServiceProvider;
 use Niraj\CrudStarter\Commands\ApiGenerator;
 use Niraj\CrudStarter\Commands\CrudGenerator;
+use Niraj\CrudStarter\Commands\DashboardGenerator;
 use Niraj\CrudStarter\Commands\DeleteApi;
 use Niraj\CrudStarter\Commands\DeleteCrud;
-use Illuminate\Support\ServiceProvider;
 
 class CrudStarterServiceProvider extends ServiceProvider
 {
-
     protected $defer = false;
 
-    public function boot()
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                ApiGenerator::class,
+                DashboardGenerator::class,
                 CrudGenerator::class,
+                DeleteCrud::class,
+                ApiGenerator::class,
                 DeleteApi::class,
-                DeleteCrud::class
             ]);
 
             $this->publishes([
-                __DIR__ . '/stubs' => base_path("/resources/crud-stub"),
+                __DIR__.'/stubs' => base_path("/resources/crud-stub"),
             ], 'crud-stub');
         }
     }

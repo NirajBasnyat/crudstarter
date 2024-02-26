@@ -1,1 +1,8 @@
-<button class="{{$class ?? 'btn btn-sm btn-dark'}}" type="{{$type ?? 'submit'}}">{{$slot}}</button>
+    @props([
+      'id' => 'id',
+      'class' =>'btn btn-sm btn-dark',
+      'type' => 'submit'
+    ])
+
+    <br>
+    <button id="{{$id}}" class="{{$class}}" type="{{$type}}">{{$slot}}</button>

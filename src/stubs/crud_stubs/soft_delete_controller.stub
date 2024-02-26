@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 use App\Models\{{modelName}};
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\{{modelName}}Request;
+{{statusChangeTraitImport}}
+{{imageTraitNamespace}}
 
 class {{modelName}}Controller extends Controller
 {
+    {{imageTraitCode}}
+    {{statusChangeTrait}}
     public function index(Request $request): View
     {
         return view('{{modelNameSingularLowerCase}}.index', [
@@ -27,7 +31,7 @@ class {{modelName}}Controller extends Controller
 
     public function store({{modelName}}Request $request): RedirectResponse
     {
-        {{modelName}}::create($request->validated());
+        {{storeMethodCode}}
 
         return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
     }
@@ -44,7 +48,7 @@ class {{modelName}}Controller extends Controller
 
     public function update({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}}): RedirectResponse
     {
-        ${{modelNameSingularLowerCase}}->update($request->validated());
+        {{updateMethodCode}}
 
         return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Updated Successfully!');
     }
@@ -64,9 +68,10 @@ class {{modelName}}Controller extends Controller
         return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Restored Successfully!');
     }
 
-    public function forceDelete($id)
+    public function forceDelete($id): RedirectResponse
     {
         ${{modelNameSingularLowerCase}} = {{modelName}}::onlyTrashed()->findOrFail($id);
+        {{deleteMethodCode}}
         ${{modelNameSingularLowerCase}}->forceDelete();
 
         return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('error', '{{modelName}} Eliminated Successfully!');
@@ -80,4 +85,6 @@ class {{modelName}}Controller extends Controller
         return view('{{modelNameSingularLowerCase}}.trash', compact('{{modelNameSingularLowerCase}}'));
     }
     */
+
+    {{statusChangeMethodCode}}
 }

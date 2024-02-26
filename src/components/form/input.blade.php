@@ -1,8 +1,23 @@
-<div class="form-group">
-    <label for="{{$id ?? $name}}">{{$label ?? 'Text'}}</label>
-    <input type="{{$type ?? 'text'}}" class="{{$class ?? 'form-control'}}" name="{{$name}}" id="{{$id ?? $name}}"
-    value="{{$value ?? ''}}">
+@props([
+  'id' => $name,
+  'label' => 'Label',
+  'class' => '',
+  'value' => '',
+  'type' => 'text',
+  'message' => '',
+  'col' => '12',
+  'req' => false,
+  'labelDisplay' => true,
+  'name'
+])
+<div class="col-md-{{$col}}">
 
-    @error($name) <span class="text-danger">{{ $message }}</span> @enderror
+    @if($labelDisplay === true)
+        <label for="{{$id}}" class="col-form-label">{{$label}} @if($req === true)
+                <span class="text-danger">*</span>
+            @endif</label>
+    @endif
+    <input type="{{$type}}" {{ $attributes->merge(['class' => $class . ' form-control text-14']) }} name="{{$name}}" id="{{$id}}" value="{{$value}}" {{$attributes}}>
 
+    @error($name) <span class="text-danger small">{{ $message }}</span> @enderror
 </div>

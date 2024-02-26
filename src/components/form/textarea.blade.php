@@ -1,5 +1,20 @@
-<div class="form-group">
-    <label for="{{$id ?? $name}}">{{$label ?? 'TextArea'}}</label>
-    <textarea class="{{$class ?? 'form-control'}}" name="{{$name}}" id="{{$id ?? $name}}" rows="{{$rows ?? 5}}" cols="{{$cols ?? 5}}">{{$value}}</textarea>
-    @error($name) <span class="text-danger">{{ $message }}</span> @enderror
+@props([
+  'id' => $name,
+  'label' => 'Label',
+  'class' => 'form-control text-14',
+  'value' => '',
+  'type' => 'text',
+  'message' => '',
+  'col' => '12',
+  'req' => false,
+  'name'
+])
+
+<div class="col-md-{{$col}}">
+    <label for="{{$id}}" class="col-form-label">{{$label}} @if($req === true)
+            <span class="text-danger">*</span>
+        @endif</label>
+
+    <textarea class="{{$class}}" name="{{$name}}" id="{{$id}}"  {{$attributes}}>{{$value}}</textarea>
+    @error($name) <span class="text-danger small">{{ $message }}</span> @enderror
 </div>

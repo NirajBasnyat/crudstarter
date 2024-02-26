@@ -5,14 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 {{traitImport}}
+{{fileTraitImport}}
 
 class {{modelName}} extends Model
 {
     use HasFactory;
-    {{traits}}
+    {{traits}}{{fileTrait}}
 
-    {{massAssignment}}
+    protected $guarded = ['id'];
+
+    {{fileAccessor}}
 
     {{relationships}}
-
 }

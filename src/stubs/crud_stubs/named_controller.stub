@@ -3,17 +3,22 @@
 namespace App\Http\Controllers\{{folderName}};
 
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use App\Models\{{folderName}}\{{modelName}};
+use App\Models\{{modelName}};
 use App\Http\Controllers\Controller;
 use App\Http\Requests\{{folderName}}\{{modelName}}Request;
+{{statusChangeTraitImport}}
+{{imageTraitNamespace}}
 
 class {{modelName}}Controller extends Controller
 {
+    {{imageTraitCode}}
+    {{statusChangeTrait}}
     public function index() : View
     {
         return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.index', [
-            '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()->get()
+            '{{modelNamePluralLowerCase}}' => {{modelName}}::query()->select({{fieldsForSelect}})->latest()->get()
         ]);
     }
 
@@ -24,9 +29,9 @@ class {{modelName}}Controller extends Controller
 
     public function store({{modelName}}Request $request) : RedirectResponse
     {
-        {{modelName}}::create($request->validated());
+        {{storeMethodCode}}
 
-        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
+        return redirect()->route('{{folderNameSnakeCase}}.{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Created Successfully!');
     }
 
     public function show({{modelName}} ${{modelNameSingularLowerCase}}) : View
@@ -41,15 +46,19 @@ class {{modelName}}Controller extends Controller
 
     public function update({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}}) : RedirectResponse
     {
-        ${{modelNameSingularLowerCase}}->update($request->validated());
+        {{updateMethodCode}}
 
-        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Updated Successfully!');
+        return redirect()->route('{{folderNameSnakeCase}}.{{modelNamePluralKebabCase}}.index')->with('success', '{{modelName}} Updated Successfully!');
     }
 
     public function destroy({{modelName}} ${{modelNameSingularLowerCase}}) : RedirectResponse
     {
+        {{deleteMethodCode}}
+
         ${{modelNameSingularLowerCase}}->delete();
 
-        return redirect()->route('{{modelNamePluralKebabCase}}.index')->with('error', '{{modelName}} Deleted Successfully!');
+        return redirect()->route('{{folderNameSnakeCase}}.{{modelNamePluralKebabCase}}.index')->with('error', '{{modelName}} Deleted Successfully!');
     }
+
+    {{statusChangeMethodCode}}
 }

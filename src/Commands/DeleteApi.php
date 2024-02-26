@@ -3,7 +3,6 @@
 namespace Niraj\CrudStarter\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Niraj\CrudStarter\Traits\tableTrait;
 
@@ -26,63 +25,54 @@ class DeleteApi extends Command
 
         $this->tableArray = array();
 
+        //define variable
+
+        $this->snake_case = Str::snake($name);
+        $this->snake_case_plural = Str::plural(Str::snake($name));
+
         //define path
-        if ($this->confirm('Are CRUD files Placed inside Specific Folder?')) {
 
-            $folder_name = $this->ask('Enter the Folder Name');
+        if ($this->confirm('Are API files place inside specific folder?')) {
 
-            $this->model_path = app_path("Models/{$folder_name}/{$name}.php");
-            $this->request_path = app_path("Http/Requests/{$folder_name}Api/{$name}ApiRequest.php");
-            $this->test_path = base_path("tests/Feature/{$name}ApiTest.php");
-            $this->controller_path = app_path("Http/Controllers/Api/{$folder_name}/{$name}ApiController.php");
+            $folder_name = $this->ask('Enter the folder name (case sensitive)');
+
+            $this->controller_path = app_path("/Http/Controllers/{$folder_name}Api/{$name}ApiController.php");
+            $this->request_path = app_path("/Http/Requests/{$folder_name}Api/{$name}ApiRequest.php");
             $this->resource_path = app_path("Http/Resources/{$folder_name}/{$name}Resource.php");
 
-            $this->is_valid_path();
-
         } else {
-            $this->model_path = app_path("/Models/{$name}.php");
-            $this->request_path = app_path("/Http/Requests/{$name}ApiRequest.php");
-            $this->test_path = base_path("/tests/Feature/{$name}ApiTest.php");
             $this->controller_path = app_path("/Http/Controllers/Api/{$name}ApiController.php");
-            $this->resource_path = app_path("/Http/Resources/{$name}Resource.php");
-
-            $this->is_valid_path();
+            $this->request_path = app_path("/Http/Requests/Api/{$name}ApiRequest.php");
+            $this->resource_path = app_path("Http/Resources/{$name}Resource.php");
         }
+
+        $this->model_path = app_path("/Models/{$name}.php");
+
+        $this->is_valid_path();
     }
 
     //checks if path/folder name is valid
 
     protected function is_valid_path()
     {
+        if (file_exists($this->model_path) && file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->resource_path)) {
 
-        if (file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->resource_path)) {
-
-            $this->tableArray = [['Api Controller', '<info>deleted</info>'], ['Resource', '<info>deleted</info>'], ['Form Request', '<info>deleted</info>']];
-
-            if (file_exists($this->model_path) && $this->confirm('Model Detected Want to Delete it too ?')) {
-                $this->delete_model();
-                $this->tableArray [] = ['Model', '<info>deleted</info>'];
-            }
+            $this->tableArray = [['Model', '<info>deleted</info>'], ['Form Request', '<info>deleted</info>'], ['Controller', '<info>deleted</info>'], ['Resource', '<info>deleted</info>']];
 
             //call delete functions
-            $this->delete_request();
+            $this->delete_model();
             $this->delete_controller();
+            $this->delete_request();
             $this->delete_resource_path();
-            $this->delete_test();
 
-            $this->showTableInfo($this->tableArray, 'API Files deleted');
-            $this->warn('Please remove migration and api routes manually!!');
+            $this->showTableInfo($this->tableArray, 'CRUD Files deleted');
+            $this->warn('Please remove migration and web routes manually!!');
         } else {
             $this->error('Failed to Delete , Make sure File exist, FileName is correct or Folder is Named');
         }
     }
 
     //functions to delete duh !
-
-    protected function delete_request()
-    {
-        \File::delete($this->request_path);
-    }
 
     protected function delete_model()
     {
@@ -94,13 +84,13 @@ class DeleteApi extends Command
         \File::delete($this->controller_path);
     }
 
+    protected function delete_request()
+    {
+        \File::delete($this->request_path);
+    }
+
     protected function delete_resource_path()
     {
         \File::delete($this->resource_path);
-    }
-
-    protected function delete_test()
-    {
-        \File::delete($this->test_path);
     }
 }

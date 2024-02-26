@@ -4,37 +4,41 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\{{modelName}};
 use App\Http\Controllers\Controller;
-use App\Http\Requests\{{modelName}}ApiRequest;
+use App\Http\Requests\Api\{{modelName}}ApiRequest;
 use App\Http\Resources\{{modelName}}Resource;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class {{modelName}}ApiController extends Controller
 {
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return {{modelName}}Resource::collection({{modelName}}::all());
     }
 
-    public function store({{modelName}}ApiRequest $request)
+    public function store({{modelName}}ApiRequest $request) : JsonResponse
     {
-        ${{modelNameSingularLowerCase}} = {{modelName}}::create($request->validated());
+        {{storeMethodCode}}
 
         return response()->json(${{modelNameSingularLowerCase}}, 201);
     }
 
-    public function show({{modelName}} ${{modelNameSingularLowerCase}})
+    public function show({{modelName}} ${{modelNameSingularLowerCase}}) : JsonResponse
     {
         return response()->json(${{modelNameSingularLowerCase}});
     }
 
-    public function update({{modelName}}ApiRequest $request, {{modelName}} ${{modelNameSingularLowerCase}})
+    public function update({{modelName}}ApiRequest $request, {{modelName}} ${{modelNameSingularLowerCase}}): JsonResponse
     {
-        ${{modelNameSingularLowerCase}}->update($request->validated());
+        {{updateMethodCode}}
 
         return response()->json(${{modelNameSingularLowerCase}}, 200);
     }
 
-    public function destroy({{modelName}} ${{modelNameSingularLowerCase}})
+    public function destroy({{modelName}} ${{modelNameSingularLowerCase}}) : JsonResponse
     {
+        {{deleteMethodCode}}
+
         ${{modelNameSingularLowerCase}}->delete();
 
         return response()->json(null, 204);

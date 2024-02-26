@@ -1,17 +1,26 @@
-@extends('layouts.main')
+@extends('layouts.master')
 
 @section('content')
 
-    <div class="card">
-        <div class="card-header"><h2 class="lead text-center">Create a New {{modelName}}</h2></div>
-        <div class="card-body">
+    <div class="container-xxl">
 
-            <x-form.wrapper action="{{route('{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
-                    {{fieldsForCreate}}
-                    <x-form.button class="btn btn-sm btn-dark" type="submit">Create</x-form.button>
-            </x-form.wrapper>
+        <x-breadcrumb listRoute="{{route('{{folderName}}{{modelNamePluralKebabCase}}.index')}}" model="{{modelName}}" item="Create"></x-breadcrumb>
 
+        <div class="card">
+            <div class="card-body">
+
+                <x-form.wrapper action="{{route('{{folderName}}{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
+                        {{fieldsForCreate}}
+                        <x-form.button class="btn btn-sm btn-dark" type="submit"><i class='bx bx-save bx-xs'></i> Save</x-form.button>
+                </x-form.wrapper>
+
+            </div>
         </div>
     </div>
 
 @endsection
+
+@push('custom_js')
+    {!! JsValidator::formRequest('App\Http\Requests\{{folderNameWithSlash}}{{modelName}}Request') !!}
+    {{imageHelperCode}}
+@endpush

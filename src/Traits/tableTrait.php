@@ -16,14 +16,14 @@ trait tableTrait
         $this->tArray = $tArray;
     }
 
-    protected function setUpTable($message = 'Done')
+    protected function setUpTable($message = 'Done'): void
     {
         $seperator = new TableSeparator;
         $this->tArray[] = $seperator;
-        $this->tArray[] = [new TableCell($message. ' successfully', ['colspan' => 2])];
+        $this->tArray[] = [new TableCell($message. ' Successfully !', ['colspan' => 2])];
     }
 
-    protected function showTableInfo($arr, $message)
+    protected function showTableInfo($arr, $message): void
     {
         $this->tArray = $arr;
 

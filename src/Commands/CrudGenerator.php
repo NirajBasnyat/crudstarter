@@ -3,20 +3,19 @@
 namespace Niraj\CrudStarter\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Niraj\CrudStarter\Traits\CommonCode;
 use Niraj\CrudStarter\Traits\logoTrait;
+use Niraj\CrudStarter\Traits\ResolveCodeTrait;
 use Niraj\CrudStarter\Traits\tableTrait;
 
 class CrudGenerator extends Command
 {
-    use tableTrait, logoTrait, CommonCode;
+    use tableTrait, logoTrait, ResolveCodeTrait;
 
-    protected $signature = "gen:crud {name} {--fields=} {{--relations=}} {{--addFileTrait}} {{--softDelete}}";
+    protected $signature = "gen:crud {name} {--fields=} {--relations=} {--softDelete}";
 
-    protected $description = 'Generates Basic Laravel Crud :)';
+    protected $description = 'Generates Laravel Crud :)';
 
     public function __construct()
     {
@@ -32,106 +31,105 @@ class CrudGenerator extends Command
 
     public function handle()
     {
+        $this->show_logo();
+
+        //get the args
         $name = $this->argument('name');
         $fields = $this->option('fields');
         $relations = $this->option('relations');
-        $addFileTrait = $this->option('addFileTrait');
         $softDelete = $this->option('softDelete');
 
-        //traits
-        $this->tableArray = array();
-        $this->show_logo();
+        $this->initializeVariables($name);
 
-        //define variable
-        $this->plural = Str::plural($name);
-        $this->snake_case = Str::snake($name);
-        $this->snake_case_plural = Str::plural(Str::snake($name));
-        $this->kebab_case_plural = Str::plural(Str::kebab($name));
+        //add routes
+        if ($this->confirm('Do you want to add controllers in a specific folder?')) {
+            $folder_name = $this->ask('Enter the Folder Name');
+            $this->addRoutesAndFiles($folder_name, $name, $fields, $relations);
+        } else {
+            $this->addRoutesAndFiles(null, $name, $fields, $relations);
+        }
 
-        $this->migration_stub($name, $fields);
-
+        $this->generate_migration_stub($name, $fields);
         $this->publish_components();
 
-        if ($this->confirm('Do you want to add controllers in specific folder ?')) {
+        //generate table
+        $this->tableArray = [['Model', '<info>Created</info>'], ['Controller', '<info>Created</info>'], ['Migration', '<info>Created</info>'], ['Form Request', '<info>Created</info>'], ['Blade Files', '<info>Created</info>']];
 
-            $folder_name = $this->ask('Enter the Folder Name');
-
-            //add named resource controller in web.php
-            $data = 'Route::post(\'' . $this->kebab_case_plural . '/{id}/restore' . '\',[\\App\Http\Controllers\\' . $folder_name . "\\" . $name . 'Controller::class,' . '\'restore' . '\'])->name(\'' . $this->kebab_case_plural . '.restore\');' . PHP_EOL;
-            $data .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/force-delete' . '\',[\\App\Http\Controllers\\' . $folder_name . "\\" . $name . 'Controller::class,' . '\'forceDelete' . '\'])->name(\'' . $this->kebab_case_plural . '.force_delete\');' . PHP_EOL;
-            $data .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $folder_name . "\\" . $name . "Controller::class);" . PHP_EOL;
-
-            if ($this->hasSoftDeletes() == true) {
-                File::append(
-                    base_path('routes/web.php'),
-                    $data
-                );
-            } else {
-                File::append(
-                    base_path('routes/web.php'),
-                    'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $folder_name . "\\" . $name . "Controller::class);" . PHP_EOL
-                );
-            }
-
-            $this->named_controller_stub($name, $folder_name);
-            $this->named_request_stub($name, $folder_name, $fields);
-            $this->named_model_stub($name, $folder_name, $fields, $relations);
-            $this->named_blade_stub($name, $folder_name, $fields);
-
-            //to generate test
-            if ($fields != '') {
-                if ($this->confirm('Do you wish to generate Test?')) {
-                    $this->named_feature_test_stub($name, $folder_name, $fields);
-                    $this->tableArray[] = ['Feature Test', '<info>created</info>'];
-                }
-            }
-        } else {
-            //add resource controller in web.php
-
-            $data = 'Route::post(\'' . $this->kebab_case_plural . '/{id}/restore' . '\',[\\App\Http\Controllers\\' . $name . 'Controller::class,' . '\'restore' . '\'])->name(\'' . $this->kebab_case_plural . '.restore\');' . PHP_EOL;
-            //$data .= 'Route::get(\'' . $this->kebab_case_plural . '/trashed' . '\',[\\App\Http\Controllers\\' . $name . 'Controller::class,' . '\'trashed' . '\'])->name(\'' . $this->kebab_case_plural . '.trashed\');' . PHP_EOL;
-            $data .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/force-delete' . '\',[\\App\Http\Controllers\\' . $name . 'Controller::class,' . '\'forceDelete' . '\'])->name(\'' . $this->kebab_case_plural . '.force_delete\');' . PHP_EOL;
-            $data .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $name . "Controller::class);" . PHP_EOL;
-
-            if ($this->hasSoftDeletes() == true) {
-                File::append(
-                    base_path('routes/web.php'),
-                    $data
-                );
-            } else {
-                File::append(
-                    base_path('routes/web.php'),
-                    'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . $name . "Controller::class);" . PHP_EOL
-                );
-            }
-
-            $this->controller_stub($name);
-            $this->request_stub($name, $fields);
-            $this->model_stub($name, $fields, $relations);
-            $this->blade_stub($name, $fields);
-
-            //to generate test
-            if ($fields != '') {
-                if ($this->confirm('Do you wish to generate Test?')) {
-                    $this->feature_test_stub($name, $fields);
-                    $this->tableArray[] = ['Feature Test', '<info>created</info>'];
-                }
-            }
-        }
-
-        $this->tableArray = [['Model', '<info>created</info>'], ['Controller', '<info>created</info>'], ['Migration', '<info>created</info>'], ['Form Request', '<info>created</info>'], ['Blade Files', '<info>created</info>']];
-
-        //to add file trait helper
-        if (is_bool($addFileTrait) && $addFileTrait === true) {
-            $this->add_file_trait();
-        }
-
-        $this->showTableInfo($this->tableArray, 'Crud generated');
+        $this->showTableInfo($this->tableArray, 'Crud Generated');
     }
+
+    protected function initializeVariables($name)
+    {
+        $this->tableArray = [];
+        $this->plural = Str::plural($name);
+        $this->snake_case = Str::snake($name);
+        $this->snake_case_plural = Str::plural($this->snake_case);
+        $this->kebab_case_plural = Str::plural(Str::kebab($name));
+    }
+
+    protected function addRoutesAndFiles($folder_name, $name, $fields, $relations)
+    {
+        $formatted_folder_name = $folder_name ? Str::snake($folder_name) : null;
+
+        $hasSoftDeletes = $this->hasSoftDeletes();
+
+        $hasStatusField = $this->field_has_status($fields);
+
+        $softDeleteRoutes = !is_null($folder_name) ? "Route::group(['middleware' => 'auth', 'prefix' => '$formatted_folder_name', 'as' => '$formatted_folder_name.'], function () {" . PHP_EOL : '';
+        $softDeleteRoutes.= $hasStatusField ? 'Route::get(\'status-change-' . $this->snake_case . "',[\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class,'changeStatus'])->name(". "'status-change-" . $this->snake_case . "');" . PHP_EOL : '';
+        $softDeleteRoutes .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/restore' . '\',[\\App\Http\Controllers\\' . ($folder_name ? $folder_name . "\\" : '') . $name . 'Controller::class,' . '\'restore' . '\'])->name(\'' . $this->kebab_case_plural . '.restore\');' . PHP_EOL;
+        $softDeleteRoutes .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/force-delete' . '\',[\\App\Http\Controllers\\' . ($folder_name ? $folder_name . "\\" : '') . $name . 'Controller::class,' . '\'forceDelete' . '\'])->name(\'' . $this->kebab_case_plural . '.force_delete\');' . PHP_EOL;
+        $softDeleteRoutes .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class);" . PHP_EOL;
+        $softDeleteRoutes .= !is_null($folder_name) ? '});' . PHP_EOL : '';
+
+        $standardRoutes = !is_null($folder_name) ? "Route::group(['middleware' => 'auth', 'prefix' => '$formatted_folder_name', 'as' => '$formatted_folder_name.'], function () {" . PHP_EOL : '';
+        $standardRoutes.= $hasStatusField ? 'Route::get(\'status-change-' . $this->snake_case . "',[\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class,'changeStatus'])->name(". "'status-change-" . $this->snake_case . "');" . PHP_EOL : '';
+        $standardRoutes .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class);" . PHP_EOL;
+        $standardRoutes .= !is_null($folder_name) ? '});' . PHP_EOL : '';
+
+        if ($hasSoftDeletes) {
+            File::append(base_path('routes/web.php'), $softDeleteRoutes);
+        } else {
+            File::append(base_path('routes/web.php'), $standardRoutes);
+        }
+
+        if ($folder_name) {
+            $this->generate_controller_stub($name, $folder_name, $fields);
+            $this->generate_request_stub($name, $folder_name, $fields);
+            $this->generate_model_stub($name, $folder_name, $fields, $relations);
+            $this->generate_blade_stub($name, $folder_name, $fields);
+        } else {
+            $this->generate_controller_stub($name, null, $fields);
+            $this->generate_request_stub($name, null, $fields);
+            $this->generate_model_stub($name, null, $fields, $relations);
+            $this->generate_blade_stub($name, null, $fields);
+        }
+
+        // Generate test if fields are present and user agrees
+        if ($fields != '' && $this->confirm('Do you wish to generate Test?')) {
+            if ($folder_name) {
+                $this->named_feature_test_stub($name, $folder_name, $fields);
+            } else {
+                $this->feature_test_stub($name, $fields);
+            }
+            $this->tableArray[] = ['Feature Test', '<info>Created</info>'];
+        }
+
+        $this->tableArray = [['Model', '<info>Created</info>'], ['Controller', '<info>Created</info>'], ['Migration', '<info>Created</info>'], ['Form Request', '<info>Created</info>'], ['Blade Files', '<info>Created</info>']];
+    }
+
+    protected function publish_components()
+    {
+        if (!file_exists($path = resource_path('/views/components'))) {
+            mkdir($path, 0777, true);
+            \File::copyDirectory(__DIR__ . '/../components', resource_path("/views/components"));
+        }
+    }
+
+    # STUBS -------------------------------------------------------------------------------------------------------
 
     protected function getStub($type)
     {
-        //dd("$this->stub_path/$type.stub");
         return file_get_contents("$this->stub_path/crud_stubs/$type.stub");
     }
 
@@ -140,9 +138,10 @@ class CrudGenerator extends Command
         return file_get_contents("$this->stub_path/blade/$type.stub");
     }
 
-    protected function migration_stub($name, $fields = '')
+    protected function generate_migration_stub($name, $fields = '')
     {
         $softDelete = '';
+
         if ($this->hasSoftDeletes() == true) {
             $softDelete = '$table->softDeletes();';
         }
@@ -173,131 +172,99 @@ class CrudGenerator extends Command
         file_put_contents($path, $template);
     }
 
-    protected function model_stub($name, $fields = '', $relations = '')
+    protected function generate_request_stub($name, $folder_name, $fields)
+    {
+        $validationRules = $this->resolve_request($fields);
+        // Gives model with replaced placeholder
+        $template = str_replace(
+            [
+                '{{modelName}}',
+                '{{folderName}}',
+                '{{validationRules}}'
+            ],
+            [
+                $name,
+                $folder_name ?? '',
+                $validationRules
+            ],
+            $this->getStub($folder_name ? 'named_request' : 'request')
+        );
+
+        // Create file dir if it does not exist
+        $path = app_path("/Http/Requests/") . ($folder_name ? "/{$folder_name}" : '');
+
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        }
+
+        // Update placeholder_model with valued Model
+        file_put_contents("{$path}/{$name}Request.php", $template);
+    }
+
+    //changes here
+    private function generate_model_stub($name, $folder_name, $fields, $relations)
     {
         $traitImport = '';
         $traits = '';
-        $processed_relations = '';
 
         if ($this->hasSoftDeletes() == true) {
             $traitImport = 'use Illuminate\Database\Eloquent\SoftDeletes;';
             $traits = 'use SoftDeletes;';
         }
 
+        $modelNameSingularLowerCase = Str::kebab($name);
+
+        $fileTraitCodes = $this->resolve_model_should_have_file_trait($fields, $modelNameSingularLowerCase);
+
         $massAssignment = "protected \$guarded = [];";
 
+        $processed_relations = '';
+
         if (!is_null($relations)) {
-            $processed_relations = $this->setRelationships($relations);
+            $processed_relations = $this->setRelationships($relations, $folder_name);
         }
 
-        if ($fields != '') {
-
-            $fieldsArray = explode(' ', $fields);
-
-            foreach ($fieldsArray as $item) {
-                $single_value = explode(':', trim($item));
-                $fillableArray[] = $single_value[0];
-            }
-
-            $commaSeparetedString = implode("', '", $fillableArray);
-
-            $massAssignment = "protected \$fillable = ['" . $commaSeparetedString . "'];";
-        }
-        //gives model with replaced placeholder
+        // Gives model with replaced placeholder
         $template = str_replace(
             [
                 '{{modelName}}',
+                '{{folderName}}',
                 '{{massAssignment}}',
                 '{{traitImport}}',
                 '{{traits}}',
-                '{{relationships}}'
+                '{{relationships}}',
+                '{{fileTraitImport}}',
+                '{{fileTrait}}',
+                '{{fileAccessor}}',
             ],
             [
                 $name,
+                $folder_name ?? '',
                 $massAssignment,
                 $traitImport,
                 $traits,
                 $processed_relations,
+                $fileTraitCodes['traitImport'],
+                $fileTraitCodes['trait'],
+                $fileTraitCodes['getImagePathAttribute'],
             ],
-            $this->getStub('model')
+            $this->getStub($folder_name ? 'named_model' : 'model')
         );
 
-        //create file dir if it doesnot exist
-        if (!file_exists($path = app_path("/Models"))) {
+        // Create directory if it does not exist
+        $path = app_path("/Models");
+
+        if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }
 
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Models/{$name}.php"), $template);
+        // Update placeholder_model with the valued Model
+        file_put_contents("{$path}/{$name}.php", $template);
     }
 
-    protected function request_stub($name, $fields)
+    private function generate_blade_stub($name, $folder_name, $fields)
     {
-        $validationRules = $this->resolve_request($fields);
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{validationRules}}'
-            ],
-            [
-                $name,
-                $validationRules
-            ],
-            $this->getStub('request')
-        );
-
-        //create file dir if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Requests"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Requests/{$name}Request.php"), $template);
-    }
-
-    protected function controller_stub($name)
-    {
-        $controller_stub = $this->getStub('controller');
-
-        if ($this->hasSoftDeletes() == true) {
-            $controller_stub = $this->getStub('soft_delete_controller');
-        }
-
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}',
-                '{{modelNamePluralKebabCase}}'
-            ],
-
-            [
-                $name,
-                $this->snake_case,
-                $this->snake_case_plural,
-                $this->kebab_case_plural
-            ],
-
-            $controller_stub
-        );
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Controllers/{$name}Controller.php"), $template);
-    }
-
-    protected function blade_stub($name, $fields)
-    {
-        $fieldsForCreate = $this->get_fields_for_create($fields);
-
-        $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case);
-
-        //uncomment when in create and edit use same blade file
-        //$fieldsForCreateEdit = $this->get_fields_create_and_edit($fields, $this->snake_case);
-
-        $rows_for_index = $this->get_rows_for_index($fields, $this->snake_case);
-        $thead_for_index = $this->get_thead_for_index($fields);
+        $fieldHasImage = $this->has_image_field($fields);
 
         if ($this->hasSoftDeletes() == true) {
             $index_stub = $this->getBladeStub('trashed_blade');
@@ -305,96 +272,179 @@ class CrudGenerator extends Command
             $index_stub = $this->getBladeStub('index_blade');
         }
 
-        $template1 = str_replace(
+        $statusChangeHelperCode =  $this->get_status_change_helper_code($fields);
+        $fieldsForCreate = $this->get_fields_for_create($fields);
+        $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case); //snake_case -> modelName
+        $rows_for_index = $this->get_rows_for_index($fields, $this->snake_case);
+        $thead_for_index = $this->get_thead_for_index($fields);
+        $fieldsForShow = $this->get_fields_for_show($fields, $this->snake_case);
+
+        $indexTemplate = str_replace(
             [
+                '{{statusChangeHelperCode}}',
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
                 '{{modelNamePluralLowerCase}}',
                 '{{modelNamePluralKebabCase}}',
+                '{{folderName}}',
+                '{{folderNameWithoutDot}}',
                 '{{rowsForIndex}}',
                 '{{theadForIndex}}',
             ],
-
             [
+                $statusChangeHelperCode,
                 $name,
                 $this->snake_case,
                 $this->snake_case_plural,
                 $this->kebab_case_plural,
+                $folder_name ? Str::snake($folder_name) . '.' : '',
+                $folder_name ? Str::snake($folder_name) : '',
                 $rows_for_index,
                 $thead_for_index,
             ],
             $index_stub
         );
 
-        $template2 = str_replace(
+        $createTemplate = str_replace(
             [
                 '{{modelName}}',
                 '{{modelNamePluralKebabCase}}',
-                '{{fieldsForCreate}}'
+                '{{folderName}}',
+                '{{folderNameWithSlash}}',
+                '{{fieldsForCreate}}',
+                '{{imageHelperCode}}',
             ],
-
             [
                 $name,
                 $this->kebab_case_plural,
-                $fieldsForCreate
+                $folder_name ? Str::snake($folder_name) . '.' : '',
+                $folder_name ? $folder_name . '\\' : '',
+                $fieldsForCreate,
+                $fieldHasImage['imageHelperCode'],
                 //$fieldsForCreateEdit // just uncomment to use it
             ],
             $this->getBladeStub('create_blade')
         );
 
-        $template3 = str_replace(
+        $editTemplate = str_replace(
             [
                 '{{modelName}}',
                 '{{modelNameSingularLowerCase}}',
+                '{{folderName}}',
+                '{{folderNameWithSlash}}',
                 '{{modelNamePluralKebabCase}}',
-                '{{fieldsForEdit}}'
+                '{{fieldsForEdit}}',
+                '{{imageHelperCode}}',
             ],
-
             [
                 $name,
                 $this->snake_case,
+                $folder_name ? Str::snake($folder_name) . '.' : '',
+                $folder_name ? $folder_name . '\\' : '',
                 $this->kebab_case_plural,
-                $fieldsForEdit
+                $fieldsForEdit,
+                $fieldHasImage['imageHelperCode'],
             ],
             $this->getBladeStub('edit_blade')
         );
 
-        $template4 = $this->getBladeStub('show_blade');
+        $showTemplate = str_replace(
+            [
+                '{{fieldsForShow}}'
+            ],
+            [
+                $fieldsForShow
+            ],
+            $this->getBladeStub('show_blade')
+        );
 
-        //create folder if it doesnot exist
-        if (!file_exists($path = base_path("/resources/views/" . $this->snake_case))) {
+        //create folder if it does not exist
+        $path = base_path("/resources/views" . ($folder_name ? "/" . Str::snake($folder_name) : "") . "/" . $this->snake_case);
+
+        if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }
-
-        //creates main.blade.php
-        $this->create_main_layout();
 
         //create file
-        file_put_contents(base_path("/resources/views/" . $this->snake_case . "/index.blade.php"), $template1);
-        file_put_contents(base_path("/resources/views/" . $this->snake_case . "/create.blade.php"), $template2);
-        file_put_contents(base_path("/resources/views/" . $this->snake_case . "/edit.blade.php"), $template3);
-        file_put_contents(base_path("/resources/views/" . $this->snake_case . "/show.blade.php"), $template4);
+        file_put_contents("{$path}/index.blade.php", $indexTemplate);
+        file_put_contents("{$path}/create.blade.php", $createTemplate);
+        file_put_contents("{$path}/edit.blade.php", $editTemplate);
+        file_put_contents("{$path}/show.blade.php", $showTemplate);
     }
 
-    protected function publish_components()
+    private function generate_controller_stub($name, $folder_name, $fields)
     {
-        if (!file_exists($path = resource_path('/views/components'))) {
-            mkdir($path, 0777, true);
-            \File::copyDirectory(__DIR__ . '/../components', resource_path("/views/components"));
+        $fieldHasImage = $this->has_image_field($fields);
+
+        $methodCodes = $this->generate_controller_method_codes($name, $fields);
+
+        $controller_stub = $this->getStub('controller');
+
+        $fieldsForSelect = $this->get_select_query_fields_for_index($fields);
+
+        $statusChangeMethodCode =  $this->get_status_change_method_code($name, $fields);
+
+        if ($this->hasSoftDeletes() == true) {
+            $controller_stub = $this->getStub('soft_delete_controller');
         }
+
+        if ($folder_name) {
+            $controller_stub = $this->getStub('named_controller');
+
+            if ($this->hasSoftDeletes() == true) {
+                $controller_stub = $this->getStub('soft_delete_named_controller');
+            }
+        }
+
+        $controllerTemplate = str_replace(
+            [
+                '{{statusChangeMethodCode}}',
+                '{{statusChangeTrait}}',
+                '{{statusChangeTraitImport}}',
+                '{{folderName}}',
+                '{{folderNameSnakeCase}}',
+                '{{modelName}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNamePluralKebabCase}}',
+                '{{storeMethodCode}}',
+                '{{updateMethodCode}}',
+                '{{deleteMethodCode}}',
+                '{{fieldsForSelect}}',
+                '{{imageTraitNamespace}}',
+                '{{imageTraitCode}}',
+            ],
+            [
+                $statusChangeMethodCode['statusChangeMethodCode'],
+                $statusChangeMethodCode['statusChangeTrait'],
+                $statusChangeMethodCode['statusChangeTraitImport'],
+                $folder_name ?? '',
+                $folder_name ? Str::snake($folder_name) : '',
+                $name,
+                $this->snake_case,
+                $this->snake_case_plural,
+                $this->kebab_case_plural,
+                $methodCodes['store'],
+                $methodCodes['update'],
+                $methodCodes['delete'],
+                $fieldsForSelect,
+                $fieldHasImage['imageTraitNamespace'],
+                $fieldHasImage['imageTraitCode'],
+            ],
+            $controller_stub
+        );
+
+        // Create folder if it does not exist
+        if ($folder_name && !file_exists($path = app_path("/Http/Controllers/{$folder_name}"))) {
+            mkdir($path, 0777, true);
+        }
+
+        // Update placeholder_model with valued Model
+        $filePath = $folder_name ? "{$folder_name}/{$name}Controller.php" : "{$name}Controller.php";
+        file_put_contents(app_path("/Http/Controllers/{$filePath}"), $controllerTemplate);
     }
 
-    protected function create_main_layout()
-    {
-        //create file dir if it doesnot exist && create main.blade file if it doesnot exist
-        if (!file_exists($path = resource_path("/views/layouts"))) {
-            mkdir($path, 0777, true);
-        }
-
-        if (!file_exists($path = resource_path("/views/layouts/main.blade.php"))) {
-            file_put_contents(base_path("/resources/views/layouts/main.blade.php"), $this->getBladeStub('main_blade'));
-        }
-    }
+    # END OF STUBS -------------------------------------------------------------------------------------------------------
 
     protected function feature_test_stub($name, $fields = '')
     {
@@ -428,223 +478,6 @@ class CrudGenerator extends Command
 
         //update placeholder_model with valued Model
         file_put_contents(base_path("/tests/Feature/{$name}Test.php"), $template);
-    }
-
-    //FOR FOLDER SPECIFIC------------------------------------------------------------
-
-    protected function named_controller_stub($name, $folder_name)
-    {
-        $controller_stub = $this->getStub('named_controller');
-
-        if ($this->hasSoftDeletes() == true) {
-            $controller_stub = $this->getStub('soft_delete_named_controller');
-        }
-
-        //gives named controller stub with replaced placeholder
-        $template = str_replace(
-            [
-                '{{folderName}}',
-                '{{folderNameSnakeCase}}',
-                '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}',
-                '{{modelNamePluralKebabCase}}'
-            ],
-
-            [
-                $folder_name,
-                Str::snake($folder_name),
-                $name,
-                $this->snake_case,
-                $this->snake_case_plural,
-                $this->kebab_case_plural
-            ],
-
-            $controller_stub
-        );
-
-        //create folder if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Controllers/{$folder_name}"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Controllers/{$folder_name}/{$name}Controller.php"), $template);
-    }
-
-    protected function named_blade_stub($name, $folder_name, $fields)
-    {
-        if ($this->hasSoftDeletes() == true) {
-            $index_stub = $this->getBladeStub('trashed_blade');
-        } else {
-            $index_stub = $this->getBladeStub('index_blade');
-        }
-
-        $fieldsForCreate = $this->get_fields_for_create($fields);
-
-        $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case);
-
-        $rows_for_index = $this->get_rows_for_index($fields, $this->snake_case);
-
-        $thead_for_index = $this->get_thead_for_index($fields);
-
-        //$fieldsForCreateEdit = $this->get_fields_create_and_edit($fields, $this->snake_case);
-
-        $template1 = str_replace(
-            [
-                '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}',
-                '{{modelNamePluralKebabCase}}',
-                '{{rowsForIndex}}',
-                '{{theadForIndex}}',
-            ],
-
-            [
-                $name,
-                $this->snake_case,
-                $this->snake_case_plural,
-                $this->kebab_case_plural,
-                $rows_for_index,
-                $thead_for_index,
-            ],
-            $index_stub
-        );
-
-        $template2 = str_replace(
-            [
-                '{{modelName}}',
-                '{{modelNamePluralKebabCase}}',
-                '{{fieldsForCreate}}'
-            ],
-
-            [
-                $name,
-                $this->kebab_case_plural,
-                $fieldsForCreate,
-                //$fieldsForCreateEdit // just uncomment to use it
-            ],
-            $this->getBladeStub('create_blade')
-        );
-
-        $template3 = str_replace(
-            [
-                '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralKebabCase}}',
-                '{{fieldsForEdit}}'
-            ],
-
-            [
-                $name,
-                $this->snake_case,
-                $this->kebab_case_plural,
-                $fieldsForEdit
-            ],
-            $this->getBladeStub('edit_blade')
-        );
-
-        $template4 = $this->getBladeStub('show_blade');
-
-        //creates main.blade.php
-        $this->create_main_layout();
-
-        //create folder if it doesnot exist
-        if (!file_exists($path = base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case))) {
-            mkdir($path, 0777, true);
-        }
-
-        //create file
-        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/index.blade.php"), $template1);
-        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/create.blade.php"), $template2);
-        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/edit.blade.php"), $template3);
-        file_put_contents(base_path("/resources/views/" . Str::snake($folder_name) . "/" . $this->snake_case . "/show.blade.php"), $template4);
-    }
-
-    protected function named_request_stub($name, $folder_name, $fields)
-    {
-        $validationRules = $this->resolve_request($fields);
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{folderName}}',
-                '{{validationRules}}'
-            ],
-            [
-                $name,
-                $folder_name,
-                $validationRules
-            ],
-            $this->getStub('named_request')
-        );
-
-        //create file dir if it doesnot exist
-        if (!file_exists($path = app_path("/Http/Requests/{$folder_name}"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Http/Requests/{$folder_name}/{$name}Request.php"), $template);
-    }
-
-    protected function named_model_stub($name, $folder_name, $fields = '', $relations = '')
-    {
-        $traitImport = '';
-        $traits = '';
-
-        if ($this->hasSoftDeletes() == true) {
-            $traitImport = 'use Illuminate\Database\Eloquent\SoftDeletes;';
-            $traits = 'use SoftDeletes;';
-        }
-
-        $massAssignment = "protected \$guarded = [];";
-
-        if ($relations != '') {
-            $processed_relations = $this->setRelationships($relations, $folder_name);
-        }
-
-        if ($fields != '') {
-
-            $fieldsArray = explode(' ', $fields);
-
-            foreach ($fieldsArray as $item) {
-                $single_value = explode(':', trim($item));
-                $fillableArray[] = $single_value[0];
-            }
-
-            $commaSeparetedString = implode("', '", $fillableArray);
-
-            $massAssignment = "protected \$fillable = ['" . $commaSeparetedString . "'];";
-        }
-        //gives model with replaced placeholder
-        $template = str_replace(
-            [
-                '{{modelName}}',
-                '{{folderName}}',
-                '{{massAssignment}}',
-                '{{traitImport}}',
-                '{{traits}}',
-                '{{relationships}}',
-            ],
-            [
-                $name,
-                $folder_name,
-                $massAssignment,
-                $traitImport,
-                $traits,
-                $processed_relations,
-            ],
-            $this->getStub('named_model')
-        );
-
-        //create file dir if it doesnot exist
-        if (!file_exists($path = app_path("/Models/{$folder_name}"))) {
-            mkdir($path, 0777, true);
-        }
-
-        //update placeholder_model with valued Model
-        file_put_contents(app_path("/Models/{$folder_name}/{$name}.php"), $template);
     }
 
     protected function named_feature_test_stub($name, $folder_name, $fields = '')
@@ -683,31 +516,8 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/tests/Feature/{$name}Test.php"), $template);
     }
 
-
-    //END OF FOLDER SPECIFIC------------------------------------------------------------
-
-    protected function add_file_trait()
+    protected function hasSoftDeletes(): bool
     {
-        if (!file_exists($path = app_path("/Traits"))) {
-            mkdir($path, 0777, true);
-        }
-
-        copy(__DIR__ . '/../stubs/Traits/FileUploadTrait.php', app_path('/Traits/FileUploadTrait.php'));
-    }
-
-    protected function hasSoftDeletes()
-    {
-        if (is_bool($this->option('softDelete')) && $this->option('softDelete') === true) {
-            return true;
-        }
-        return false;
-    }
-
-    protected function hasRelations()
-    {
-        if (is_bool($this->option('relations')) && $this->option('relations') === true) {
-            return true;
-        }
-        return false;
+        return is_bool($this->option('softDelete')) && $this->option('softDelete') === true;
     }
 }
