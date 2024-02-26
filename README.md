@@ -20,9 +20,15 @@ Composer: >= 2.0
 ```
 composer require niraj/crudstarter --dev
 ```
+#### Optional (If you want to edit stub files)
 ```
 php artisan vendor:publish --tag=crud-stub
 ```
+#### Generate Dashboard (One time command)
+```
+php artisan gen:dashboard
+```
+
 
 ## Package Usage
 
@@ -30,11 +36,11 @@ php artisan vendor:publish --tag=crud-stub
 
 - To generate CRUD
 
-``php artisan gen:crud {ModelName} ``
+``php artisan gen:crud {ModelName} --fields="fieldName:dataType fieldName:dataType" ``
 
 - To generate API
 
-``php artisan gen:api {ModelName} ``
+``php artisan gen:api {ModelName} --fields="fieldName:dataType fieldName:dataType``
 
 - To delete CRUD Files
 
@@ -44,7 +50,7 @@ php artisan vendor:publish --tag=crud-stub
 
 ``php artisan del:api {ModelName} ``
 
-> Example:  To generate Post CRUD ``php artisan gen:crud Post ``
+> Example:  To generate Post CRUD ``php artisan gen:crud Post  --fields="name:str slug:str description:text image:str status:bool"``
 
 ### Adding Fields
 You can add fields in ``gen`` commands which auto fills **model, migration, request and api resources**
@@ -81,51 +87,7 @@ to add this functionality simply add ``--softDelete`` in gen command
 
 > ``php artisan gen:crud Post --fields="name:str description:text" --softDelete``
 
-### Adding File Upload Helper
-To add helper trait simply add ``--addFileTrait``
-> Example:  
->  ``php artisan gen:crud Profile --fields="name:str avatar:str" --addFileTrait``
 
-> **Note:** You only need to add it one time. No need to specify it on next command!
-#### How to use trait helper
-- Add helper trait in controller ``use  FileUploadTrait;``
-- Add line to upload file ``$this->fileUpload($modelName, 'fieldName', 'folder-name', false);``
-> **Note:**
-> - `false` corresponds to deleting image.
-> -  make sure to run php artisan storage:link
-> - make sure to import trait at the top
-
-> Usage Example:  going with Profile Model above
-
-**For Storing Profile Avatar**
- ```php
-public function store(ProfileRequest $request) { 
-
-	$profile = Profile::create($request->except('avatar')); 
-	
-	if ($request->hasFile('avatar')) {
-		   $this->fileUpload($profile, 'avatar', 'profile-image', false); 
-	} 
-	
-	return redirect()->route('profiles.index')->with('message', 'Profile Created Successfully!'); 
-}
-```
-**For Updating Profile Avatar**
-```php
-public function update(ProfileRequest $request, Profile $profile) { 
-
-	$profile->update($request->except('avatar')); 
-	
-	if ($request->hasFile('avatar')) {
-		if (!is_null($profile->avatar)) {
-			$this->fileUpload($profile, 'avatar', 'profile-image', true);
-		}
-		$this->fileUpload($profile, 'avatar', 'profile-image', false);
-	} 
-	
-	return redirect()->route('profiles.index')->with('message', 'Profile Created Successfully!'); 
-}
-``` 
 ### Field Data Type
 some short hands for convenience are provided i.e instead of **``unsignedInteger``** we can use  **``uint``**  instead while defining fields
 
