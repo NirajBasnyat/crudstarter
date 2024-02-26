@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-body">
 
-                <x-form.wrapper action="{{route('{{folderName}}{{modelNamePluralKebabCase}}.store')}}" method= "POST" enctype="multipart/form-data">
+                <x-form.wrapper action="{{route('{{folderName}}{{modelNamePluralKebabCase}}.store')}}" method="POST" enctype="multipart/form-data">
                         {{fieldsForCreate}}
                         <x-form.button class="btn btn-sm btn-dark" type="submit"><i class='bx bx-save bx-xs'></i> Save</x-form.button>
                 </x-form.wrapper>
