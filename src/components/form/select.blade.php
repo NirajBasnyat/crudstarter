@@ -15,6 +15,16 @@
   'options'
 ])
 
+<!-- 
+Usage of this component
+:options : array  -- you can put your model request here 
+value : string  -- The column you want to display 
+_key : string  -- The id you want to use as value in the select option  
+
+<x-form.select col="6" name="category_id" label="Category" :options="$categories" _key="id" value="name" />        
+
+-->
+
 <div class="col-md-{{$col}}">
 
     @if($labelDisplay === true)
@@ -28,15 +38,12 @@
         @endif
 
         {{$slot}}
+        
 
         @foreach($options as $key => $item)
-            @if (isset($model))
-                <option value='{{ $key }}'
-                        {{($model == $key || $model == $item) ? 'selected' : ''}}
-                >{{ $item }}</option>
-            @else
-                <option value='{{ $key }}' {{ isset($_key) && $key == 1 ? 'selected' : (old($name) == $key ? 'selected' : '') }}>{{ $item }}</option>
-            @endif
+        <option value="{{ $item[$_key] }}" {{ $item[$_key] == $model ? 'selected' : '' }}>
+                {{ $item[$value] }}
+            </option>
         @endforeach
     </select>
     @error($name) <span class="text-danger small">{{$message}}</span> @enderror
