@@ -6,13 +6,12 @@ use Illuminate\View\View;
 use Illuminate\Http\Request;
 use App\Models\{{modelName}};
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\{{modelName}}Request;
+use App\Http\Requests\{{modelName}}StoreRequest;
+use App\Http\Requests\{{modelName}}UpdateRequest;
 {{statusChangeTraitImport}}
-{{imageTraitNamespace}}
 
 class {{modelName}}Controller extends Controller
 {
-    {{imageTraitCode}}
     {{statusChangeTrait}}
     public function index(): View
     {
@@ -26,7 +25,7 @@ class {{modelName}}Controller extends Controller
         return view('{{modelNameSingularLowerCase}}.create');
     }
 
-    public function store({{modelName}}Request $request): RedirectResponse
+    public function store({{modelName}}StoreRequest $request): RedirectResponse
     {
         {{storeMethodCode}}
 
@@ -43,7 +42,7 @@ class {{modelName}}Controller extends Controller
         return view('{{modelNameSingularLowerCase}}.edit', compact('{{modelNameSingularLowerCase}}'));
     }
 
-    public function update({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}}): RedirectResponse
+    public function update({{modelName}}UpdateRequest $request, {{modelName}} ${{modelNameSingularLowerCase}}): RedirectResponse
     {
         {{updateMethodCode}}
 

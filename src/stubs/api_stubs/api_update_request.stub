@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Api;
 use Illuminate\Foundation\Http\FormRequest;
 
-class {{modelName}}StoreApiRequest extends FormRequest
+class {{modelName}}UpdateApiRequest extends FormRequest
 {
     public function authorize(): bool
     {

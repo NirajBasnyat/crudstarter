@@ -403,8 +403,8 @@ trait ResolveCodeTrait
         $imageField = [
             'hasImage' => false,
             'imageHelperCode' => '',
-            'imageTraitNamespace' => '',
-            'imageTraitCode' => '',
+           // 'imageTraitNamespace' => '',
+           // 'imageTraitCode' => '',
         ];
 
         if ($fields != '') {
@@ -413,8 +413,8 @@ trait ResolveCodeTrait
                 if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
                     $imageField['hasImage'] = true;
                     $imageField['imageHelperCode'] = "@include('_helpers.image_preview',['name' => '".$item['name']."'])";
-                    $imageField['imageTraitNamespace'] = 'use App\Traits\UploadFileTrait;';
-                    $imageField['imageTraitCode'] = 'use UploadFileTrait;';
+                    //$imageField['imageTraitNamespace'] = 'use App\Traits\UploadFileTrait;';
+                    //$imageField['imageTraitCode'] = 'use UploadFileTrait;';
                 }
             }
         }
@@ -426,11 +426,6 @@ trait ResolveCodeTrait
     {
         $hasStatus = $this->field_has_status($fields);
         return $hasStatus ? "@include('_helpers.status_change', ['url' => url('{{folderNameWithoutDot}}/status-change-{{modelNameSingularLowerCase}}')])" : '';
-    }
-
-    protected function get_image_helper_code()
-    {
-
     }
 
     protected function get_status_change_method_code($name, $fields = ''): array
@@ -474,8 +469,8 @@ trait ResolveCodeTrait
     protected function generate_controller_method_codes(string $modelName, string $fields): array
     {
         $methodCodes = [
-            'store' => '$'.Str::lower($modelName).' = '.$modelName.'::create($request->validated());',
-            'update' => '$'.Str::lower($modelName).'->update($request->validated());',
+            'store' => '$'.Str::snake($modelName).' = '.$modelName.'::create($request->validated());',
+            'update' => '$'.Str::snake($modelName).'->update($request->validated());',
             'delete' => '',
         ];
 
@@ -499,9 +494,9 @@ trait ResolveCodeTrait
 
     protected function generateImageStoreCode(string $modelName, string $fieldName)
     {
-        return '$'.Str::lower($modelName).' = '.$modelName.'::create($request->safe()->except(\''.$fieldName.'\'));'.PHP_EOL
+        return '$'.Str::snake($modelName).' = '.$modelName.'::create($request->safe()->except(\''.$fieldName.'\'));'.PHP_EOL
             .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
-            .'    $'.Str::lower($modelName).'->storeImage(\''.$fieldName.'\', \''.Str::lower($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
+            .'    $'.Str::snake($modelName).'->storeImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
             .'}';
     }
 
@@ -509,19 +504,19 @@ trait ResolveCodeTrait
     {
         return '$data = $request->safe()->except(\''.$fieldName.'\');'.PHP_EOL
             .'if ($request->input(\'image_removed\') == \'true'.'\') {'.PHP_EOL
-            .'$'.Str::lower($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::lower($modelName).'-images\');'.PHP_EOL
+            .'$'.Str::snake($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\');'.PHP_EOL
             .'$data[\''.$fieldName.'\'] = null;'.PHP_EOL
             .'}'.PHP_EOL.PHP_EOL
-            .'$'.Str::lower($modelName).'->update($data);'.PHP_EOL.PHP_EOL
+            .'$'.Str::snake($modelName).'->update($data);'.PHP_EOL.PHP_EOL
             .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
-            .'    $'.Str::lower($modelName).'->updateImage(\''.$fieldName.'\', \''.Str::lower($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
+            .'    $'.Str::snake($modelName).'->updateImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
             .'}';
     }
 
     protected function generateImageDeleteCode(string $modelName, string $fieldName)
     {
-        return 'if($'.Str::lower($modelName).'->'.$fieldName.'){'.PHP_EOL
-            .'$'.Str::lower($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::lower($modelName).'-images\');'.PHP_EOL
+        return 'if($'.Str::snake($modelName).'->'.$fieldName.'){'.PHP_EOL
+            .'$'.Str::snake($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::snake($modelName).'-images\');'.PHP_EOL
             .'}';
     }
 

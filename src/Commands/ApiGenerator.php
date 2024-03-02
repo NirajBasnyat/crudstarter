@@ -13,7 +13,7 @@ class ApiGenerator extends Command
 {
     use tableTrait, logoTrait, ResolveCodeTrait;
 
-    protected $signature = 'gen:api {name} {--fields=} {{--relations=}} {{--addFileTrait}} {{--softDelete}}';
+    protected $signature = 'gen:api {name} {--fields=} {--relations=} {--softDelete}';
 
     protected $description = 'Generates Laravel Api';
 
@@ -21,13 +21,11 @@ class ApiGenerator extends Command
     {
         parent::__construct();
 
-        $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
-
-        /*if (file_exists(resource_path('crud-stub'))) {
+        if (file_exists(resource_path('crud-stub'))) {
             $this->stub_path = resource_path('crud-stub');
         } else {
             $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
-        }*/
+        }
     }
 
     public function handle()
@@ -35,7 +33,6 @@ class ApiGenerator extends Command
         $name = $this->argument('name');
         $fields = $this->option('fields');
         $relations = $this->option('relations');
-        $addFileTrait = $this->option('addFileTrait');
         $softDelete = $this->option('softDelete');
 
         $this->initializeVariables($name);
@@ -45,10 +42,6 @@ class ApiGenerator extends Command
             $this->addRoutesAndFiles($folder_name, $name, $fields, $relations);
         } else {
             $this->addRoutesAndFiles(null, $name, $fields, $relations);
-        }
-
-        if (is_bool($addFileTrait) && $addFileTrait === true) {
-            $this->add_file_trait();
         }
 
         $this->showTableInfo($this->tableArray, 'API Generated');
@@ -174,12 +167,11 @@ class ApiGenerator extends Command
         file_put_contents("{$path}/{$name}Resource.php", $template);
     }
 
-
     protected function generate_api_request_stub($name, $folder_name, $fields)
     {
         $validationRules = $this->resolve_request($fields);
         // Gives model with replaced placeholder
-        $template = str_replace(
+        $storeTemplate = str_replace(
             [
                 '{{modelName}}',
                 '{{folderName}}',
@@ -193,6 +185,20 @@ class ApiGenerator extends Command
             $this->getApiStub($folder_name ? 'named_api_request' : 'api_request')
         );
 
+        $updateTemplate = str_replace(
+            [
+                '{{modelName}}',
+                '{{folderName}}',
+                '{{validationRules}}'
+            ],
+            [
+                $name,
+                $folder_name ?? '',
+                $validationRules
+            ],
+            $this->getApiStub($folder_name ? 'named_api_update_request' : 'api_update_request')
+        );
+
         // Create file dir if it does not exist
         $path = app_path("/Http/Requests/").($folder_name ? "/{$folder_name}Api" : 'Api');
 
@@ -201,7 +207,8 @@ class ApiGenerator extends Command
         }
 
         // Update placeholder_model with valued Model
-        file_put_contents("{$path}/{$name}ApiRequest.php", $template);
+        file_put_contents("{$path}/{$name}StoreApiRequest.php", $storeTemplate);
+        file_put_contents("{$path}/{$name}UpdateApiRequest.php", $updateTemplate);
     }
 
 
@@ -217,7 +224,9 @@ class ApiGenerator extends Command
             $traits = 'use SoftDeletes;';
         }
 
-        $fileTraitCodes = $this->resolve_model_should_have_file_trait($fields);
+        $modelNameSingularLowerCase = Str::kebab($name);
+
+        $fileTraitCodes = $this->resolve_model_should_have_file_trait($fields, $modelNameSingularLowerCase);
 
         $massAssignment = "protected \$guarded = [];";
 
@@ -238,6 +247,7 @@ class ApiGenerator extends Command
                 '{{relationships}}',
                 '{{fileTraitImport}}',
                 '{{fileTrait}}',
+                '{{fileAccessor}}',
             ],
             [
                 $name,
@@ -247,7 +257,8 @@ class ApiGenerator extends Command
                 $traits,
                 $processed_relations,
                 $fileTraitCodes['traitImport'],
-                $fileTraitCodes['trait']
+                $fileTraitCodes['trait'],
+                $fileTraitCodes['getImagePathAttribute'],
             ],
             $this->getStub($folder_name ? 'named_model' : 'model')
         );
@@ -262,6 +273,7 @@ class ApiGenerator extends Command
         // Update placeholder_model with the valued Model
         file_put_contents("{$path}/{$name}.php", $template);
     }
+
 
     protected function generate_migration_stub(string $name, string $fields = '')
     {

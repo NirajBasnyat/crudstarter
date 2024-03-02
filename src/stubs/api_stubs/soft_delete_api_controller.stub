@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Models\{{modelName}};
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\{{modelName}}ApiRequest;
+use App\Http\Requests\Api\{{modelName}}StoreApiRequest;
+use App\Http\Requests\Api\{{modelName}}UpdateApiRequest;
 use App\Http\Resources\{{modelName}}Resource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -22,7 +23,7 @@ class {{modelName}}ApiController extends Controller
         return {{modelName}}Resource::collection(${{modelNamePluralLowerCase}});
     }
 
-    public function store({{modelName}}ApiRequest $request): JsonResponse
+    public function store({{modelName}}StoreApiRequest $request): JsonResponse
     {
         {{storeMethodCode}}
 
@@ -34,7 +35,7 @@ class {{modelName}}ApiController extends Controller
         return response()->json(${{modelNameSingularLowerCase}});
     }
 
-    public function update({{modelName}}ApiRequest $request, {{modelName}} ${{modelNameSingularLowerCase}}): JsonResponse
+    public function update({{modelName}}UpdateApiRequest $request, {{modelName}} ${{modelNameSingularLowerCase}}): JsonResponse
     {
         {{updateMethodCode}}
 

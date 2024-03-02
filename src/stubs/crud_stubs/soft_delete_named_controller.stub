@@ -7,13 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use App\Models\{{modelName}};
 use App\Http\Controllers\Controller;
-use App\Http\Requests\{{folderName}}\{{modelName}}Request;
+use App\Http\Requests\{{folderName}}\{{modelName}}StoreRequest;
+use App\Http\Requests\{{folderName}}\{{modelName}}UpdateRequest;
 {{statusChangeTraitImport}}
-{{imageTraitNamespace}}
 
 class {{modelName}}Controller extends Controller
 {
-    {{imageTraitCode}}
     {{statusChangeTrait}}
     public function index(Request $request): View
     {
@@ -30,7 +29,7 @@ class {{modelName}}Controller extends Controller
         return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.create');
     }
 
-    public function store({{modelName}}Request $request) : RedirectResponse
+    public function store({{modelName}}StoreRequest $request) : RedirectResponse
     {
         {{storeMethodCode}}
 
@@ -47,7 +46,7 @@ class {{modelName}}Controller extends Controller
         return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.edit', compact('{{modelNameSingularLowerCase}}'));
     }
 
-    public function update({{modelName}}Request $request, {{modelName}} ${{modelNameSingularLowerCase}}) : RedirectResponse
+    public function update({{modelName}}UpdateRequest $request, {{modelName}} ${{modelNameSingularLowerCase}}) : RedirectResponse
     {
         {{updateMethodCode}}
 

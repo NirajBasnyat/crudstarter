@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\{{folderName}};
+
 use Illuminate\Foundation\Http\FormRequest;
 
-class {{modelName}}StoreApiRequest extends FormRequest
+class {{modelName}}UpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return auth()->check();
     }
 
     public function rules(): array

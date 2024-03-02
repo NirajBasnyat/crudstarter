@@ -176,7 +176,7 @@ class CrudGenerator extends Command
     {
         $validationRules = $this->resolve_request($fields);
         // Gives model with replaced placeholder
-        $template = str_replace(
+        $storeTemplate = str_replace(
             [
                 '{{modelName}}',
                 '{{folderName}}',
@@ -190,6 +190,20 @@ class CrudGenerator extends Command
             $this->getStub($folder_name ? 'named_request' : 'request')
         );
 
+        $updateTemplate = str_replace(
+            [
+                '{{modelName}}',
+                '{{folderName}}',
+                '{{validationRules}}'
+            ],
+            [
+                $name,
+                $folder_name ?? '',
+                $validationRules
+            ],
+            $this->getStub($folder_name ? 'named_update_request' : 'request_update')
+        );
+
         // Create file dir if it does not exist
         $path = app_path("/Http/Requests/") . ($folder_name ? "/{$folder_name}" : '');
 
@@ -198,7 +212,8 @@ class CrudGenerator extends Command
         }
 
         // Update placeholder_model with valued Model
-        file_put_contents("{$path}/{$name}Request.php", $template);
+        file_put_contents("{$path}/{$name}StoreRequest.php", $storeTemplate);
+        file_put_contents("{$path}/{$name}UpdateRequest.php", $updateTemplate);
     }
 
     //changes here
@@ -374,8 +389,6 @@ class CrudGenerator extends Command
 
     private function generate_controller_stub($name, $folder_name, $fields)
     {
-        $fieldHasImage = $this->has_image_field($fields);
-
         $methodCodes = $this->generate_controller_method_codes($name, $fields);
 
         $controller_stub = $this->getStub('controller');
@@ -411,8 +424,6 @@ class CrudGenerator extends Command
                 '{{updateMethodCode}}',
                 '{{deleteMethodCode}}',
                 '{{fieldsForSelect}}',
-                '{{imageTraitNamespace}}',
-                '{{imageTraitCode}}',
             ],
             [
                 $statusChangeMethodCode['statusChangeMethodCode'],
@@ -428,8 +439,6 @@ class CrudGenerator extends Command
                 $methodCodes['update'],
                 $methodCodes['delete'],
                 $fieldsForSelect,
-                $fieldHasImage['imageTraitNamespace'],
-                $fieldHasImage['imageTraitCode'],
             ],
             $controller_stub
         );
