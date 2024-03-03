@@ -17,7 +17,7 @@
 
 <!-- 
 Usage of this component
-:options : array  -- you can put your model request here 
+:options : array  -- you can put your model request here  option might be a simple array also 
 value : string  -- The column you want to display 
 _key : string  -- The id you want to use as value in the select option  
 
@@ -41,9 +41,9 @@ _key : string  -- The id you want to use as value in the select option
         
 
         @foreach($options as $key => $item)
-        <option value="{{ $item[$_key] }}" {{ $item[$_key] == $model ? 'selected' : '' }}>
-                {{ $item[$value] }}
-            </option>
+        <option value="{{ $item[$_key]??$item }}" {{ $item[$_key]??$item==$model ? 'selected' : '' }}>
+            {{ $item[$value]??$item }}
+        </option>
         @endforeach
     </select>
     @error($name) <span class="text-danger small">{{$message}}</span> @enderror
