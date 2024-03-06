@@ -41,7 +41,7 @@ _key : string  -- The id you want to use as value in the select option
         
 
         @foreach($options as $key => $item)
-        <option value="{{ $item[$_key]??$item }}" {{ $item[$_key]??$item==$model ? 'selected' : '' }}>
+        <option value="{{ $item[$_key]??$item }}" {{ ($item[$_key]??$item==$model) ? 'selected' : '' }}>
             {{ $item[$value]??$item }}
         </option>
         @endforeach
