@@ -37,12 +37,14 @@ class DeleteApi extends Command
             $folder_name = $this->ask('Enter the folder name (case sensitive)');
 
             $this->controller_path = app_path("/Http/Controllers/{$folder_name}Api/{$name}ApiController.php");
-            $this->request_path = app_path("/Http/Requests/{$folder_name}Api/{$name}ApiRequest.php");
+            $this->store_request_path = app_path("/Http/Requests/{$folder_name}Api/{$name}StoreApiRequest.php");
+            $this->update_request_path = app_path("/Http/Requests/{$folder_name}Api/{$name}UpdateApiRequest.php");
             $this->resource_path = app_path("Http/Resources/{$folder_name}/{$name}Resource.php");
 
         } else {
             $this->controller_path = app_path("/Http/Controllers/Api/{$name}ApiController.php");
-            $this->request_path = app_path("/Http/Requests/Api/{$name}ApiRequest.php");
+            $this->store_request_path = app_path("/Http/Requests/Api/{$name}StoreApiRequest.php");
+            $this->update_request_path = app_path("/Http/Requests/Api/{$name}UpdateApiRequest.php");
             $this->resource_path = app_path("Http/Resources/{$name}Resource.php");
         }
 
@@ -55,7 +57,7 @@ class DeleteApi extends Command
 
     protected function is_valid_path()
     {
-        if (file_exists($this->model_path) && file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->resource_path)) {
+        if (file_exists($this->model_path) && file_exists($this->store_request_path) && file_exists($this->update_request_path) && file_exists($this->controller_path) && file_exists($this->resource_path)) {
 
             $this->tableArray = [['Model', '<info>deleted</info>'], ['Form Request', '<info>deleted</info>'], ['Controller', '<info>deleted</info>'], ['Resource', '<info>deleted</info>']];
 
@@ -86,7 +88,8 @@ class DeleteApi extends Command
 
     protected function delete_request()
     {
-        \File::delete($this->request_path);
+        \File::delete($this->store_request_path);
+        \File::delete($this->update_request_path);
     }
 
     protected function delete_resource_path()

@@ -47,7 +47,7 @@ trait ResolveCodeTrait
                     $migrationSchema .= "\$table->$type('$name')->nullable();".PHP_EOL.$space;
                 } elseif (isset($fieldLookUp[$type]) && ($fieldLookUp[$type] == 'bool' || $fieldLookUp[$type] == 'boolean')) {
                     $type = $fieldLookUp[$type];
-                    $migrationSchema .= "\$table->$type('$name')->default(0);".PHP_EOL.$space;
+                    $migrationSchema .= "\$table->$type('$name')->default(1);".PHP_EOL.$space;
                 } elseif ($name == 'slug') {
                     $migrationSchema .= "\$table->string('$name')->unique();".PHP_EOL.$space;
                 } elseif ($type == 'select') {
@@ -171,14 +171,14 @@ trait ResolveCodeTrait
 
                 if (in_array($name, ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
                     $fieldsData .= '<x-form.input type="file" label="'.$label.'" id="'.$name.'" name="'.$name.'" alt="image" accept="image/*" onchange="previewThumb(this,\'featured-thumb\')" />'.PHP_EOL;
-                    $fieldsData.='<x-form.preview id="featured-thumb".'.$imagePath.'/>'.PHP_EOL;
+                    $fieldsData.='<x-form.preview id="featured-thumb"'.$imagePath.'/>'.PHP_EOL;
                 } elseif ($item['type'] == 'select') {
                     $options = $item['options'] ?? '[]';
                     $fieldsData .= '<x-form.select name="'.$name.'" label="'.$label.'" :options="'.$options.'" model="'.$value.'"/>'.PHP_EOL;
                 } elseif (in_array($item['type'], ['txt', 'text', 'tinytext', 'tinyText', 'mediumtext', 'mediumText', 'longtext', 'longText'])) {
                     $fieldsData .= '<x-form.textarea label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'" rows="5" cols="5" />'.PHP_EOL;
                 } elseif (in_array($item['type'], ['bool', 'boolean'])) {
-                    $isChecked = $snake_cased_var ? sprintf('$%s->%s ? \'checked\' : \'\'', $snake_cased_var, $name) : 'true';
+                    $isChecked = $snake_cased_var ? sprintf('$%s->%s ? \'checked\' : \'\'', $snake_cased_var, $name) : '\'checked\'';
                     $fieldsData .= '<x-form.checkbox label="'.$label.'" id="'.$name.'" name="'.$name.'" value="1" class="form-check-input" isEditMode="yes" :isChecked="'.$isChecked.'"/>'.PHP_EOL;
                 } else {
                     $fieldsData .= '<x-form.input type="text" label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'"/>'.PHP_EOL;
@@ -425,7 +425,7 @@ trait ResolveCodeTrait
     protected function get_status_change_helper_code($fields = ''): string
     {
         $hasStatus = $this->field_has_status($fields);
-        return $hasStatus ? "@include('_helpers.status_change', ['url' => url('{{folderNameWithoutDot}}/status-change-{{modelNameSingularLowerCase}}')])" : '';
+        return $hasStatus ? "@include('_helpers.status_change', ['url' => url('{{folderNameWithoutDot}}/status-change-{{modelNameSingularKebabCase}}')])" : '';
     }
 
     protected function get_status_change_method_code($name, $fields = ''): array

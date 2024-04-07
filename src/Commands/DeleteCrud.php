@@ -26,7 +26,6 @@ class DeleteCrud extends Command
         $this->tableArray = array();
 
         //define variable
-
         $this->snake_case = Str::snake($name);
         $this->snake_case_plural = Str::plural(Str::snake($name));
 
@@ -40,7 +39,8 @@ class DeleteCrud extends Command
             $this->controller_path = app_path("/Http/Controllers/{$folder_name}/{$name}Controller.php");
             $this->model_path = app_path("/Models/{$name}.php");
             $this->blade_folder = base_path("/resources/views/".Str::snake($folder_name)."/".$this->snake_case);
-            $this->request_path = app_path("/Http/Requests/{$folder_name}/{$name}Request.php");
+            $this->store_request_path = app_path("/Http/Requests/{$folder_name}/{$name}StoreRequest.php");
+            $this->update_request_path = app_path("/Http/Requests/{$folder_name}/{$name}UpdateRequest.php");
 
             $this->is_valid_path();
 
@@ -48,7 +48,8 @@ class DeleteCrud extends Command
             $this->model_path = app_path("/Models/{$name}.php");
             $this->controller_path = app_path("/Http/Controllers/{$name}Controller.php");
             $this->blade_folder = base_path("/resources/views/".$this->snake_case);
-            $this->request_path = app_path("/Http/Requests/{$name}Request.php");
+            $this->store_request_path = app_path("/Http/Requests/{$name}StoreRequest.php");
+            $this->update_request_path = app_path("/Http/Requests/{$name}UpdateRequest.php");
 
             $this->is_valid_path();
         }
@@ -58,7 +59,7 @@ class DeleteCrud extends Command
 
     protected function is_valid_path()
     {
-        if (file_exists($this->model_path) && file_exists($this->request_path) && file_exists($this->controller_path) && file_exists($this->blade_folder)) {
+        if (file_exists($this->model_path) && file_exists($this->store_request_path) && file_exists($this->update_request_path) && file_exists($this->controller_path) && file_exists($this->blade_folder)) {
 
             $this->tableArray = [['Model', '<info>deleted</info>'], ['Form Request', '<info>deleted</info>'], ['Controller', '<info>deleted</info>'], ['Blade Files', '<info>deleted</info>']];
 
@@ -95,7 +96,8 @@ class DeleteCrud extends Command
 
     protected function delete_request()
     {
-        \File::delete($this->request_path);
+        \File::delete($this->store_request_path);
+        \File::delete($this->update_request_path);
     }
 
     protected function delete_test()

@@ -5,9 +5,12 @@ namespace Niraj\CrudStarter\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Process;
+use Niraj\CrudStarter\Traits\generalHelperTrait;
 
 class DashboardGenerator extends Command
 {
+    use generalHelperTrait;
+
     //hides the command from terminal
     protected $hidden = true;
 
@@ -22,6 +25,13 @@ class DashboardGenerator extends Command
 
     public function handle()
     {
+        //check laravel version
+        if($this->getInstalledLaravelVersion() > 10) {
+            copy(__DIR__.'/../replacementFiles/controller.php', app_path("/Http/Controllers/Controller.php"));
+        }
+
+        $this->info('Please wait while the Dashboard is being generated...');
+
         Process::run('composer require laravel/ui');
         Process::run('php artisan ui bootstrap --auth');
         Process::run('composer require proengsoft/laravel-jsvalidation');
@@ -33,8 +43,8 @@ class DashboardGenerator extends Command
 
         $this->info('Laravel Auth UI scaffolding replaced successfully.');
         $this->info('proengsoft/laravel-jsvalidation package added.');
-        $this->comment('Please execute the "npm install && npm run dev" command to build your assets.');
-        $this->comment('Then run npm run build to compile them.');
+        $this->warn('Please execute the "npm install && npm run dev" command to build your assets.');
+        $this->warn('Then run "npm run build" to compile them.');
     }
 
     protected function publishBladeAssets()
@@ -67,29 +77,6 @@ class DashboardGenerator extends Command
         if (!file_exists($path = base_path($path))) {
             mkdir($path, 0777, true);
         }
-    }
-
-    protected static function updateNodePackages(callable $callback, $dev = true)
-    {
-        if (!file_exists(base_path('package.json'))) {
-            return;
-        }
-
-        $configurationKey = $dev ? 'devDependencies' : 'dependencies';
-
-        $packages = json_decode(file_get_contents(base_path('package.json')), true);
-
-        $packages[$configurationKey] = $callback(
-            array_key_exists($configurationKey, $packages) ? $packages[$configurationKey] : [],
-            $configurationKey
-        );
-
-        ksort($packages[$configurationKey]);
-
-        file_put_contents(
-            base_path('package.json'),
-            json_encode($packages, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT).PHP_EOL
-        );
     }
 
     protected function publishTraits()

@@ -6,12 +6,12 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Niraj\CrudStarter\Traits\logoTrait;
-use Niraj\CrudStarter\Traits\ResolveCodeTrait;
+use Niraj\CrudStarter\Traits\resolveCodeTrait;
 use Niraj\CrudStarter\Traits\tableTrait;
 
 class CrudGenerator extends Command
 {
-    use tableTrait, logoTrait, ResolveCodeTrait;
+    use tableTrait, logoTrait, resolveCodeTrait;
 
     protected $signature = "gen:crud {name} {--fields=} {--relations=} {--softDelete}";
 
@@ -28,6 +28,7 @@ class CrudGenerator extends Command
             $this->stub_path = base_path('vendor/niraj/crudstarter/src/stubs');
         }
     }
+
 
     public function handle()
     {
@@ -49,8 +50,8 @@ class CrudGenerator extends Command
             $this->addRoutesAndFiles(null, $name, $fields, $relations);
         }
 
-        $this->generate_migration_stub($name, $fields);
-        $this->publish_components();
+        $this->generateMigrationStub($name, $fields);
+        $this->publishComponents();
 
         //generate table
         $this->tableArray = [['Model', '<info>Created</info>'], ['Controller', '<info>Created</info>'], ['Migration', '<info>Created</info>'], ['Form Request', '<info>Created</info>'], ['Blade Files', '<info>Created</info>']];
@@ -65,6 +66,7 @@ class CrudGenerator extends Command
         $this->snake_case = Str::snake($name);
         $this->snake_case_plural = Str::plural($this->snake_case);
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
+        $this->kebab_case_singular = Str::kebab($name);
     }
 
     protected function addRoutesAndFiles($folder_name, $name, $fields, $relations)
@@ -83,7 +85,7 @@ class CrudGenerator extends Command
         $softDeleteRoutes .= !is_null($folder_name) ? '});' . PHP_EOL : '';
 
         $standardRoutes = !is_null($folder_name) ? "Route::group(['middleware' => 'auth', 'prefix' => '$formatted_folder_name', 'as' => '$formatted_folder_name.'], function () {" . PHP_EOL : '';
-        $standardRoutes.= $hasStatusField ? 'Route::get(\'status-change-' . $this->snake_case . "',[\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class,'changeStatus'])->name(". "'status-change-" . $this->snake_case . "');" . PHP_EOL : '';
+        $standardRoutes.= $hasStatusField ? 'Route::get(\'status-change-' . $this->kebab_case_singular . "',[\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class,'changeStatus'])->name(". "'status-change-" . $this->kebab_case_singular . "');" . PHP_EOL : '';
         $standardRoutes .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class);" . PHP_EOL;
         $standardRoutes .= !is_null($folder_name) ? '});' . PHP_EOL : '';
 
@@ -94,31 +96,31 @@ class CrudGenerator extends Command
         }
 
         if ($folder_name) {
-            $this->generate_controller_stub($name, $folder_name, $fields);
-            $this->generate_request_stub($name, $folder_name, $fields);
-            $this->generate_model_stub($name, $folder_name, $fields, $relations);
-            $this->generate_blade_stub($name, $folder_name, $fields);
+            $this->generateControllerStub($name, $folder_name, $fields);
+            $this->generateRequestStub($name, $folder_name, $fields);
+            $this->generateModelStub($name, $folder_name, $fields, $relations);
+            $this->generateBladeStub($name, $folder_name, $fields);
         } else {
-            $this->generate_controller_stub($name, null, $fields);
-            $this->generate_request_stub($name, null, $fields);
-            $this->generate_model_stub($name, null, $fields, $relations);
-            $this->generate_blade_stub($name, null, $fields);
+            $this->generateControllerStub($name, null, $fields);
+            $this->generateRequestStub($name, null, $fields);
+            $this->generateModelStub($name, null, $fields, $relations);
+            $this->generateBladeStub($name, null, $fields);
         }
 
         // Generate test if fields are present and user agrees
-        if ($fields != '' && $this->confirm('Do you wish to generate Test?')) {
+       /* if ($fields != '' && $this->confirm('Do you wish to generate Test?')) {
             if ($folder_name) {
-                $this->named_feature_test_stub($name, $folder_name, $fields);
+                $this->namedFeatureTestStub($name, $folder_name, $fields);
             } else {
-                $this->feature_test_stub($name, $fields);
+                $this->featureTestStub($name, $fields);
             }
             $this->tableArray[] = ['Feature Test', '<info>Created</info>'];
-        }
+        }*/
 
         $this->tableArray = [['Model', '<info>Created</info>'], ['Controller', '<info>Created</info>'], ['Migration', '<info>Created</info>'], ['Form Request', '<info>Created</info>'], ['Blade Files', '<info>Created</info>']];
     }
 
-    protected function publish_components()
+    protected function publishComponents()
     {
         if (!file_exists($path = resource_path('/views/components'))) {
             mkdir($path, 0777, true);
@@ -138,7 +140,7 @@ class CrudGenerator extends Command
         return file_get_contents("$this->stub_path/blade/$type.stub");
     }
 
-    protected function generate_migration_stub($name, $fields = '')
+    protected function generateMigrationStub($name, $fields = '')
     {
         $softDelete = '';
 
@@ -172,7 +174,7 @@ class CrudGenerator extends Command
         file_put_contents($path, $template);
     }
 
-    protected function generate_request_stub($name, $folder_name, $fields)
+    protected function generateRequestStub($name, $folder_name, $fields)
     {
         $validationRules = $this->resolve_request($fields);
         // Gives model with replaced placeholder
@@ -216,8 +218,7 @@ class CrudGenerator extends Command
         file_put_contents("{$path}/{$name}UpdateRequest.php", $updateTemplate);
     }
 
-    //changes here
-    private function generate_model_stub($name, $folder_name, $fields, $relations)
+    private function generateModelStub($name, $folder_name, $fields, $relations)
     {
         $traitImport = '';
         $traits = '';
@@ -277,7 +278,7 @@ class CrudGenerator extends Command
         file_put_contents("{$path}/{$name}.php", $template);
     }
 
-    private function generate_blade_stub($name, $folder_name, $fields)
+    private function generateBladeStub($name, $folder_name, $fields)
     {
         $fieldHasImage = $this->has_image_field($fields);
 
@@ -301,6 +302,7 @@ class CrudGenerator extends Command
                 '{{modelNameSingularLowerCase}}',
                 '{{modelNamePluralLowerCase}}',
                 '{{modelNamePluralKebabCase}}',
+                '{{modelNameSingularKebabCase}}',
                 '{{folderName}}',
                 '{{folderNameWithoutDot}}',
                 '{{rowsForIndex}}',
@@ -312,6 +314,7 @@ class CrudGenerator extends Command
                 $this->snake_case,
                 $this->snake_case_plural,
                 $this->kebab_case_plural,
+                $this->kebab_case_singular,
                 $folder_name ? Str::snake($folder_name) . '.' : '',
                 $folder_name ? Str::snake($folder_name) : '',
                 $rows_for_index,
@@ -387,7 +390,7 @@ class CrudGenerator extends Command
         file_put_contents("{$path}/show.blade.php", $showTemplate);
     }
 
-    private function generate_controller_stub($name, $folder_name, $fields)
+    private function generateControllerStub($name, $folder_name, $fields)
     {
         $methodCodes = $this->generate_controller_method_codes($name, $fields);
 
@@ -455,7 +458,7 @@ class CrudGenerator extends Command
 
     # END OF STUBS -------------------------------------------------------------------------------------------------------
 
-    protected function feature_test_stub($name, $fields = '')
+    protected function featureTestStub($name, $fields = '')
     {
         $createTestFields = $this->resolve_create_test_fields($fields);
 
@@ -489,7 +492,7 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/tests/Feature/{$name}Test.php"), $template);
     }
 
-    protected function named_feature_test_stub($name, $folder_name, $fields = '')
+    protected function namedFeatureTestStub($name, $folder_name, $fields = '')
     {
         $createTestFields = $this->resolve_create_test_fields($fields);
 

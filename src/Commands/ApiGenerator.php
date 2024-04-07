@@ -6,12 +6,12 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Niraj\CrudStarter\Traits\logoTrait;
-use Niraj\CrudStarter\Traits\ResolveCodeTrait;
+use Niraj\CrudStarter\Traits\resolveCodeTrait;
 use Niraj\CrudStarter\Traits\tableTrait;
 
 class ApiGenerator extends Command
 {
-    use tableTrait, logoTrait, ResolveCodeTrait;
+    use tableTrait, logoTrait, resolveCodeTrait;
 
     protected $signature = 'gen:api {name} {--fields=} {--relations=} {--softDelete}';
 
