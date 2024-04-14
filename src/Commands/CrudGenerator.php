@@ -29,7 +29,6 @@ class CrudGenerator extends Command
         }
     }
 
-
     public function handle()
     {
         $this->show_logo();
@@ -71,28 +70,30 @@ class CrudGenerator extends Command
 
     protected function addRoutesAndFiles($folder_name, $name, $fields, $relations)
     {
+        $routePath = base_path('routes/' . config('crudstarter.crud_route', 'web.php'));
+
         $formatted_folder_name = $folder_name ? Str::snake($folder_name) : null;
 
         $hasSoftDeletes = $this->hasSoftDeletes();
 
         $hasStatusField = $this->field_has_status($fields);
 
-        $softDeleteRoutes = !is_null($folder_name) ? "Route::group(['middleware' => 'auth', 'prefix' => '$formatted_folder_name', 'as' => '$formatted_folder_name.'], function () {" . PHP_EOL : '';
-        $softDeleteRoutes.= $hasStatusField ? 'Route::get(\'status-change-' . $this->snake_case . "',[\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class,'changeStatus'])->name(". "'status-change-" . $this->snake_case . "');" . PHP_EOL : '';
-        $softDeleteRoutes .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/restore' . '\',[\\App\Http\Controllers\\' . ($folder_name ? $folder_name . "\\" : '') . $name . 'Controller::class,' . '\'restore' . '\'])->name(\'' . $this->kebab_case_plural . '.restore\');' . PHP_EOL;
-        $softDeleteRoutes .= 'Route::post(\'' . $this->kebab_case_plural . '/{id}/force-delete' . '\',[\\App\Http\Controllers\\' . ($folder_name ? $folder_name . "\\" : '') . $name . 'Controller::class,' . '\'forceDelete' . '\'])->name(\'' . $this->kebab_case_plural . '.force_delete\');' . PHP_EOL;
-        $softDeleteRoutes .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class);" . PHP_EOL;
-        $softDeleteRoutes .= !is_null($folder_name) ? '});' . PHP_EOL : '';
+        $softDeleteRoutes = !is_null($folder_name) ? "Route::group(['middleware' => 'auth', 'prefix' => '$formatted_folder_name', 'as' => '$formatted_folder_name.'], function () {".PHP_EOL : '';
+        $softDeleteRoutes .= $hasStatusField ? 'Route::get(\'status-change-'.$this->snake_case."',[\\App\Http\Controllers\\".($folder_name ? $folder_name."\\" : '').$name."Controller::class,'changeStatus'])->name("."'status-change-".$this->snake_case."');".PHP_EOL : '';
+        $softDeleteRoutes .= 'Route::post(\''.$this->kebab_case_plural.'/{id}/restore'.'\',[\\App\Http\Controllers\\'.($folder_name ? $folder_name."\\" : '').$name.'Controller::class,'.'\'restore'.'\'])->name(\''.$this->kebab_case_plural.'.restore\');'.PHP_EOL;
+        $softDeleteRoutes .= 'Route::post(\''.$this->kebab_case_plural.'/{id}/force-delete'.'\',[\\App\Http\Controllers\\'.($folder_name ? $folder_name."\\" : '').$name.'Controller::class,'.'\'forceDelete'.'\'])->name(\''.$this->kebab_case_plural.'.force_delete\');'.PHP_EOL;
+        $softDeleteRoutes .= 'Route::resource(\''.$this->kebab_case_plural."',\\App\Http\Controllers\\".($folder_name ? $folder_name."\\" : '').$name."Controller::class);".PHP_EOL;
+        $softDeleteRoutes .= !is_null($folder_name) ? '});'.PHP_EOL : '';
 
-        $standardRoutes = !is_null($folder_name) ? "Route::group(['middleware' => 'auth', 'prefix' => '$formatted_folder_name', 'as' => '$formatted_folder_name.'], function () {" . PHP_EOL : '';
-        $standardRoutes.= $hasStatusField ? 'Route::get(\'status-change-' . $this->kebab_case_singular . "',[\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class,'changeStatus'])->name(". "'status-change-" . $this->kebab_case_singular . "');" . PHP_EOL : '';
-        $standardRoutes .= 'Route::resource(\'' . $this->kebab_case_plural . "',\\App\Http\Controllers\\" . ($folder_name ? $folder_name . "\\" : '') . $name . "Controller::class);" . PHP_EOL;
-        $standardRoutes .= !is_null($folder_name) ? '});' . PHP_EOL : '';
+        $standardRoutes = !is_null($folder_name) ? "Route::group(['middleware' => 'auth', 'prefix' => '$formatted_folder_name', 'as' => '$formatted_folder_name.'], function () {".PHP_EOL : '';
+        $standardRoutes .= $hasStatusField ? 'Route::get(\'status-change-'.$this->kebab_case_singular."',[\\App\Http\Controllers\\".($folder_name ? $folder_name."\\" : '').$name."Controller::class,'changeStatus'])->name("."'status-change-".$this->kebab_case_singular."');".PHP_EOL : '';
+        $standardRoutes .= 'Route::resource(\''.$this->kebab_case_plural."',\\App\Http\Controllers\\".($folder_name ? $folder_name."\\" : '').$name."Controller::class);".PHP_EOL;
+        $standardRoutes .= !is_null($folder_name) ? '});'.PHP_EOL : '';
 
         if ($hasSoftDeletes) {
-            File::append(base_path('routes/web.php'), $softDeleteRoutes);
+            File::append($routePath, $softDeleteRoutes);
         } else {
-            File::append(base_path('routes/web.php'), $standardRoutes);
+            File::append($routePath, $standardRoutes);
         }
 
         if ($folder_name) {
@@ -108,14 +109,14 @@ class CrudGenerator extends Command
         }
 
         // Generate test if fields are present and user agrees
-       /* if ($fields != '' && $this->confirm('Do you wish to generate Test?')) {
-            if ($folder_name) {
-                $this->namedFeatureTestStub($name, $folder_name, $fields);
-            } else {
-                $this->featureTestStub($name, $fields);
-            }
-            $this->tableArray[] = ['Feature Test', '<info>Created</info>'];
-        }*/
+        /* if ($fields != '' && $this->confirm('Do you wish to generate Test?')) {
+             if ($folder_name) {
+                 $this->namedFeatureTestStub($name, $folder_name, $fields);
+             } else {
+                 $this->featureTestStub($name, $fields);
+             }
+             $this->tableArray[] = ['Feature Test', '<info>Created</info>'];
+         }*/
 
         $this->tableArray = [['Model', '<info>Created</info>'], ['Controller', '<info>Created</info>'], ['Migration', '<info>Created</info>'], ['Form Request', '<info>Created</info>'], ['Blade Files', '<info>Created</info>']];
     }
@@ -124,7 +125,7 @@ class CrudGenerator extends Command
     {
         if (!file_exists($path = resource_path('/views/components'))) {
             mkdir($path, 0777, true);
-            \File::copyDirectory(__DIR__ . '/../components', resource_path("/views/components"));
+            \File::copyDirectory(__DIR__.'/../components', resource_path("/views/components"));
         }
     }
 
@@ -169,15 +170,16 @@ class CrudGenerator extends Command
             $this->getStub('migration')
         );
 
-        $path = database_path('/migrations/') . date('Y_m_d_His') . '_create_' . $this->snake_case_plural . '_table.php';
+        $path = database_path('/migrations/').date('Y_m_d_His').'_create_'.$this->snake_case_plural.'_table.php';
 
         file_put_contents($path, $template);
     }
 
     protected function generateRequestStub($name, $folder_name, $fields)
     {
-        $validationRules = $this->resolve_request($fields);
-        // Gives model with replaced placeholder
+        $validationRulesStore = $this->resolve_request($fields, 'store');
+        $validationRulesUpdate = $this->resolve_request($fields, 'update');
+
         $storeTemplate = str_replace(
             [
                 '{{modelName}}',
@@ -187,7 +189,7 @@ class CrudGenerator extends Command
             [
                 $name,
                 $folder_name ?? '',
-                $validationRules
+                $validationRulesStore
             ],
             $this->getStub($folder_name ? 'named_request' : 'request')
         );
@@ -201,13 +203,13 @@ class CrudGenerator extends Command
             [
                 $name,
                 $folder_name ?? '',
-                $validationRules
+                $validationRulesUpdate
             ],
             $this->getStub($folder_name ? 'named_update_request' : 'request_update')
         );
 
         // Create file dir if it does not exist
-        $path = app_path("/Http/Requests/") . ($folder_name ? "/{$folder_name}" : '');
+        $path = app_path("/Http/Requests/").($folder_name ? "/{$folder_name}" : '');
 
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
@@ -288,7 +290,7 @@ class CrudGenerator extends Command
             $index_stub = $this->getBladeStub('index_blade');
         }
 
-        $statusChangeHelperCode =  $this->get_status_change_helper_code($fields);
+        $statusChangeHelperCode = $this->get_status_change_helper_code($fields);
         $fieldsForCreate = $this->get_fields_for_create($fields);
         $fieldsForEdit = $this->get_fields_for_edit($fields, $this->snake_case); //snake_case -> modelName
         $rows_for_index = $this->get_rows_for_index($fields, $this->snake_case);
@@ -315,7 +317,7 @@ class CrudGenerator extends Command
                 $this->snake_case_plural,
                 $this->kebab_case_plural,
                 $this->kebab_case_singular,
-                $folder_name ? Str::snake($folder_name) . '.' : '',
+                $folder_name ? Str::snake($folder_name).'.' : '',
                 $folder_name ? Str::snake($folder_name) : '',
                 $rows_for_index,
                 $thead_for_index,
@@ -335,8 +337,8 @@ class CrudGenerator extends Command
             [
                 $name,
                 $this->kebab_case_plural,
-                $folder_name ? Str::snake($folder_name) . '.' : '',
-                $folder_name ? $folder_name . '\\' : '',
+                $folder_name ? Str::snake($folder_name).'.' : '',
+                $folder_name ? $folder_name.'\\' : '',
                 $fieldsForCreate,
                 $fieldHasImage['imageHelperCode'],
                 //$fieldsForCreateEdit // just uncomment to use it
@@ -357,8 +359,8 @@ class CrudGenerator extends Command
             [
                 $name,
                 $this->snake_case,
-                $folder_name ? Str::snake($folder_name) . '.' : '',
-                $folder_name ? $folder_name . '\\' : '',
+                $folder_name ? Str::snake($folder_name).'.' : '',
+                $folder_name ? $folder_name.'\\' : '',
                 $this->kebab_case_plural,
                 $fieldsForEdit,
                 $fieldHasImage['imageHelperCode'],
@@ -377,7 +379,7 @@ class CrudGenerator extends Command
         );
 
         //create folder if it does not exist
-        $path = base_path("/resources/views" . ($folder_name ? "/" . Str::snake($folder_name) : "") . "/" . $this->snake_case);
+        $path = base_path("/resources/views".($folder_name ? "/".Str::snake($folder_name) : "")."/".$this->snake_case);
 
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
@@ -398,7 +400,7 @@ class CrudGenerator extends Command
 
         $fieldsForSelect = $this->get_select_query_fields_for_index($fields);
 
-        $statusChangeMethodCode =  $this->get_status_change_method_code($name, $fields);
+        $statusChangeMethodCode = $this->get_status_change_method_code($name, $fields);
 
         if ($this->hasSoftDeletes() == true) {
             $controller_stub = $this->getStub('soft_delete_controller');

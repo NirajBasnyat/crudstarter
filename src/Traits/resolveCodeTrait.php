@@ -42,7 +42,7 @@ trait ResolveCodeTrait
                 $name = trim($name);
                 $type = trim($type);
 
-                if (in_array($name, ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
+                if (in_array($name, config('crudstarter.image_fields'))) {
                     $type = $fieldLookUp[$type];
                     $migrationSchema .= "\$table->$type('$name')->nullable();".PHP_EOL.$space;
                 } elseif (isset($fieldLookUp[$type]) && ($fieldLookUp[$type] == 'bool' || $fieldLookUp[$type] == 'boolean')) {
@@ -64,46 +64,47 @@ trait ResolveCodeTrait
         return $migrationSchema;
     }
 
-    protected function resolve_request($fields = ''): string
+    protected function resolve_request($fields = '', $type = 'store'): string
     {
         $validationLookUp = [
-            'int' => 'required|integer',
-            'uint' => 'required|integer',
-            'integer' => 'required|integer',
-            'tinyint' => 'required|integer',
-            'utinyint' => 'required|integer',
-            'tinyInteger' => 'required|integer',
-            'smallint' => 'required|integer',
-            'usmallint' => 'required|integer',
-            'smallInteger' => 'required|integer',
-            'mediumint' => 'required|integer',
-            'umediumint' => 'required|integer',
-            'mediumInteger' => 'required|integer',
-            'bigint' => 'required|integer',
-            'ubigint' => 'required|integer',
-            'bigInteger' => 'required|integer',
-            'str' => 'required|string',
-            'string' => 'required|string',
-            'txt' => 'required|string',
-            'text' => 'required|string',
-            'mediumtext' => 'required|string|min:5',
-            'mediumText' => 'required|string|min:5',
-            'longtext' => 'required|string|min:10',
-            'longText' => 'required|string|min:10',
+            'int' => config('crudstarter.default_validation').'|integer',
+            'uint' => config('crudstarter.default_validation').'|integer',
+            'integer' => config('crudstarter.default_validation').'|integer',
+            'tinyint' => config('crudstarter.default_validation').'|integer',
+            'utinyint' => config('crudstarter.default_validation').'|integer',
+            'tinyInteger' => config('crudstarter.default_validation').'|integer',
+            'smallint' => config('crudstarter.default_validation').'|integer',
+            'usmallint' => config('crudstarter.default_validation').'|integer',
+            'smallInteger' => config('crudstarter.default_validation').'|integer',
+            'mediumint' => config('crudstarter.default_validation').'|integer',
+            'umediumint' => config('crudstarter.default_validation').'|integer',
+            'mediumInteger' => config('crudstarter.default_validation').'|integer',
+            'bigint' => config('crudstarter.default_validation').'|integer',
+            'ubigint' => config('crudstarter.default_validation').'|integer',
+            'bigInteger' => config('crudstarter.default_validation').'|integer',
+            'str' => config('crudstarter.default_validation').'|string',
+            'string' => config('crudstarter.default_validation').'|string',
+            'txt' => config('crudstarter.default_validation').'|string',
+            'text' => config('crudstarter.default_validation').'|string',
+            'mediumtext' => config('crudstarter.default_validation').'|string|min:5',
+            'mediumText' => config('crudstarter.default_validation').'|string|min:5',
+            'longtext' => config('crudstarter.default_validation').'|string|min:10',
+            'longText' => config('crudstarter.default_validation').'|string|min:10',
             'bool' => 'boolean',
             'boolean' => 'boolean',
-            'date' => 'required|date'
+            'date' => config('crudstarter.default_validation').'|date'
         ];
 
         $validationRules = '';
+        $imageValidation = $type === 'store' ? (config('crudstarter.image_required', false) === true ? 'required|image' : 'nullable|image') : 'nullable|image';
 
         if ($fields != '') {
 
             $data = $this->resolve_fields($fields);
 
             foreach ($data as $item) {
-                if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
-                    $validationRules .= "'".$item['name']."'".'=>'."'image|nullable',".PHP_EOL.'            ';
+                if (in_array($item['name'], config('crudstarter.image_fields'))) {
+                    $validationRules .= "'".$item['name']."'".'=>'."'$imageValidation',".PHP_EOL.'            ';
                 } elseif (isset($validationLookUp[$item['type']])) {
                     $type = $validationLookUp[$item['type']];
                     $validationRules .= "'".$item['name']."'".'=>'."'".$type."',".PHP_EOL.'            ';
@@ -138,7 +139,7 @@ trait ResolveCodeTrait
             foreach ($data as $item) {
                 $name = $item['name'];
 
-                if (in_array($name, ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
+                if (in_array($name, config('crudstarter.image_fields'))) {
                     $fieldsData .= '<div class="card-content mt-2">'.
                         '<b class="d-block text-uppercase text-14">'.$name.'</b>'.
 
@@ -159,35 +160,53 @@ trait ResolveCodeTrait
     protected function get_fields($fields, $snake_cased_var = null): string
     {
         $fieldsData = '';
+        $counter = 0;
 
         if ($fields != '') {
             $data = $this->resolve_fields($fields);
+            $cols_per_row = config('crudstarter.cols_per_row', 1);
+            $colSpan = $cols_per_row > 1 ? floor(12 / $cols_per_row) : null;
 
             foreach ($data as $item) {
                 $name = $item['name'];
                 $label = ucfirst($name);
                 $value = $snake_cased_var ? sprintf('{{$%s->%s}}', $snake_cased_var, $name) : '{{ old(\''.$name.'\') }}';
-                $imagePath = $snake_cased_var ? ' url="{{$' . $snake_cased_var . '->image_path}}"' : null;
+                $imagePath = $snake_cased_var ? ' url="{{$'.$snake_cased_var.'->image_path}}"' : null;
 
-                if (in_array($name, ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
-                    $fieldsData .= '<x-form.input type="file" label="'.$label.'" id="'.$name.'" name="'.$name.'" alt="image" accept="image/*" onchange="previewThumb(this,\'featured-thumb\')" />'.PHP_EOL;
-                    $fieldsData.='<x-form.preview id="featured-thumb"'.$imagePath.'/>'.PHP_EOL;
+                // Start a new row if it's the first item or if the counter is $cols_per_row (meaning we've already added two items)
+                if ($counter % $cols_per_row == 0 && $cols_per_row > 1) {
+                    $fieldsData .= '<x-form.row>'.PHP_EOL;
+                }
+
+                $colSpanAttribute = $colSpan ? ' col="'.$colSpan.'"' : '';
+
+                if (in_array($name, config('crudstarter.image_fields'))) {
+                    $fieldsData .= '<x-form.input type="file" label="'.$label.'" id="'.$name.'" name="'.$name.'" alt="image" accept="image/*" onchange="previewThumb(\''.$name.'\''.',\''.$name.'-thumb\')"'.$colSpanAttribute.' />'.PHP_EOL;
+                    $fieldsData .= '<x-form.preview for="'.$name.'" id="'.$name.'-thumb"'.$imagePath.'/>'.PHP_EOL;
                 } elseif ($item['type'] == 'select') {
                     $options = $item['options'] ?? '[]';
-                    $fieldsData .= '<x-form.select name="'.$name.'" label="'.$label.'" :options="'.$options.'" model="'.$value.'"/>'.PHP_EOL;
+                    $fieldsData .= '<x-form.select name="'.$name.'" label="'.$label.'" :options="'.$options.'" model="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
                 } elseif (in_array($item['type'], ['txt', 'text', 'tinytext', 'tinyText', 'mediumtext', 'mediumText', 'longtext', 'longText'])) {
-                    $fieldsData .= '<x-form.textarea label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'" rows="5" cols="5" />'.PHP_EOL;
+                    $fieldsData .= '<x-form.textarea label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'" rows="5" cols="5"'.$colSpanAttribute.' />'.PHP_EOL;
                 } elseif (in_array($item['type'], ['bool', 'boolean'])) {
                     $isChecked = $snake_cased_var ? sprintf('$%s->%s ? \'checked\' : \'\'', $snake_cased_var, $name) : '\'checked\'';
-                    $fieldsData .= '<x-form.checkbox label="'.$label.'" id="'.$name.'" name="'.$name.'" value="1" class="form-check-input" isEditMode="yes" :isChecked="'.$isChecked.'"/>'.PHP_EOL;
+                    $fieldsData .= '<x-form.checkbox label="'.$label.'" id="'.$name.'" name="'.$name.'" value="1" class="form-check-input" isEditMode="yes" :isChecked="'.$isChecked.'"'.$colSpanAttribute.'/>'.PHP_EOL;
                 } else {
-                    $fieldsData .= '<x-form.input type="text" label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'"/>'.PHP_EOL;
+                    $fieldsData .= '<x-form.input type="text" label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
+                }
+
+                $counter++;
+
+                // Close the row if it's the $cols_per_row item or if it's the last item and the counter is odd
+                if (($counter % $cols_per_row == 0 || $counter == count($data)) && $cols_per_row > 1) {
+                    $fieldsData .= '</x-form.row>'.PHP_EOL;
                 }
             }
         }
 
         return $fieldsData;
     }
+
 
     // --------------------------------------------------------------------- start of index blade
 
@@ -204,7 +223,7 @@ trait ResolveCodeTrait
             $data = $this->resolve_fields($fields);
 
             foreach ($data as $item) {
-                if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
+                if (in_array($item['name'], config('crudstarter.image_fields'))) {
                     $rowsForIndex .= '<x-table.table_image name="{{$'.$modelNameSingularLowerCase.'->'.$item['name'].' }}" url="{{$'.$modelNameSingularLowerCase.'->image_path }}"/>';
                 } elseif ($item['name'] == 'status') {
                     $rowsForIndex .= '<x-table.switch :model="$'.$modelNameSingularLowerCase.'" />';
@@ -403,18 +422,14 @@ trait ResolveCodeTrait
         $imageField = [
             'hasImage' => false,
             'imageHelperCode' => '',
-           // 'imageTraitNamespace' => '',
-           // 'imageTraitCode' => '',
         ];
 
         if ($fields != '') {
             $data = $this->resolve_fields($fields);
             foreach ($data as $item) {
-                if (in_array($item['name'], ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
+                if (in_array($item['name'], config('crudstarter.image_fields'))) {
                     $imageField['hasImage'] = true;
-                    $imageField['imageHelperCode'] = "@include('_helpers.image_preview',['name' => '".$item['name']."'])";
-                    //$imageField['imageTraitNamespace'] = 'use App\Traits\UploadFileTrait;';
-                    //$imageField['imageTraitCode'] = 'use UploadFileTrait;';
+                    $imageField['imageHelperCode'] = "@include('_helpers.image_preview')";
                 }
             }
         }
@@ -481,10 +496,12 @@ trait ResolveCodeTrait
                 [$name, $type] = explode(':', $field);
                 $name = trim($name);
 
-                if (in_array($name, ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
-                    $methodCodes['store'] = $this->generateImageStoreCode($modelName, $name);
-                    $methodCodes['update'] = $this->generateImageUpdateCode($modelName, $name);
-                    $methodCodes['delete'] = $this->generateImageDeleteCode($modelName, $name);
+                if (in_array($name, config('crudstarter.image_fields'))) {
+                    $methodCodes['store'] = $this->generate_image_store_code($modelName, $name);
+                    $methodCodes['update'] = config('crudstarter.image_required') === true ?
+                        $this->generate_required_image_update_code($modelName, $name) :
+                        $this->generate_image_update_code($modelName, $name);
+                    $methodCodes['delete'] = $this->generate_image_delete_code($modelName, $name);
                 }
             }
         }
@@ -492,7 +509,7 @@ trait ResolveCodeTrait
         return $methodCodes;
     }
 
-    protected function generateImageStoreCode(string $modelName, string $fieldName)
+    protected function generate_image_store_code(string $modelName, string $fieldName)
     {
         return '$'.Str::snake($modelName).' = '.$modelName.'::create($request->safe()->except(\''.$fieldName.'\'));'.PHP_EOL
             .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
@@ -500,20 +517,31 @@ trait ResolveCodeTrait
             .'}';
     }
 
-    protected function generateImageUpdateCode(string $modelName, string $fieldName)
+    protected function generate_image_update_code(string $modelName, string $fieldName)
     {
+        $imageName = Str::snake($modelName);
+        $folderName = Str::kebab($modelName);
+
         return '$data = $request->safe()->except(\''.$fieldName.'\');'.PHP_EOL
-            .'if ($request->input(\'image_removed\') == \'true'.'\') {'.PHP_EOL
-            .'$'.Str::snake($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\');'.PHP_EOL
+            .'if ((bool) $request->input(\''.$imageName.'_removed\') === true'.') {'.PHP_EOL
+            .'$'.$imageName.'->deleteImage(\''.$fieldName.'\', \''.$folderName.'-images\');'.PHP_EOL
             .'$data[\''.$fieldName.'\'] = null;'.PHP_EOL
             .'}'.PHP_EOL.PHP_EOL
-            .'$'.Str::snake($modelName).'->update($data);'.PHP_EOL.PHP_EOL
+            .'$'.$imageName.'->update($data);'.PHP_EOL.PHP_EOL
             .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
-            .'    $'.Str::snake($modelName).'->updateImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
+            .'    $'.Str::snake($modelName).'->updateImage(\''.$fieldName.'\', \''.$folderName.'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
             .'}';
     }
 
-    protected function generateImageDeleteCode(string $modelName, string $fieldName)
+    protected function generate_required_image_update_code(string $modelName, string $fieldName)
+    {
+        return '$'.Str::lower($modelName).'->update($request->safe()->except(\''.$fieldName.'\'));'.PHP_EOL
+            .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
+            .'    $'.Str::lower($modelName).'->updateImage(\''.$fieldName.'\', \''.Str::lower($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
+            .'}';
+    }
+
+    protected function generate_image_delete_code(string $modelName, string $fieldName)
     {
         return 'if($'.Str::snake($modelName).'->'.$fieldName.'){'.PHP_EOL
             .'$'.Str::snake($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::snake($modelName).'-images\');'.PHP_EOL
@@ -522,6 +550,8 @@ trait ResolveCodeTrait
 
     protected function resolve_model_should_have_file_trait(string $fields, string $modelName)
     {
+        $defaultFile = config('crudstarter.default_image_type', 'url') === 'url' ? '"'.config('crudstarter.default_image_path').'"' : 'asset("'.config('crudstarter.default_image_path').'")';
+
         $fileTraitCodes = [
             'trait' => '',
             'traitImport' => '',
@@ -534,12 +564,12 @@ trait ResolveCodeTrait
                 [$name, $type] = explode(':', $field);
                 $name = trim($name);
 
-                if (in_array($name, ['image', 'images', 'img', 'pic', 'pics', 'picture', 'pictures', 'avatar', 'photo', 'photos', 'gallery'])) {
+                if (in_array($name, config('crudstarter.image_fields'))) {
                     $fileTraitCodes['trait'] = 'use UploadFileTrait;';
                     $fileTraitCodes['traitImport'] = 'use App\Traits\UploadFileTrait;';
 
                     $getImagePathAttribute = 'public function getImagePathAttribute():string {'.PHP_EOL;
-                    $getImagePathAttribute .= "return \$this->image ? asset('uploaded-images/".$modelName.'-images/\'.$this->'.$name.") : 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';".PHP_EOL;
+                    $getImagePathAttribute .= "return \$this->".$name." ? asset('uploaded-images/".$modelName.'-images/\'.$this->'.$name.")".":".$defaultFile." ;".PHP_EOL;
                     $getImagePathAttribute .= "}".PHP_EOL;
 
                     $fileTraitCodes['getImagePathAttribute'] = $getImagePathAttribute;

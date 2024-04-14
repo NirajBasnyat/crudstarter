@@ -1,7 +1,7 @@
 @props([
   'id' => $name,
   'label' => 'CheckBox',
-  'class' => 'form-check-input',
+  'class' => '',
   'value' => 1,
   'message' => '',
   'isChecked' => '',
@@ -14,10 +14,10 @@
     @if(isset($isEditMode))
         <input type="hidden" name="{{$name}}" value="0">
     @endif
-    <input type="checkbox" class="{{$class}}" name="{{$name}}" id="{{$id}}" value="{{$value}}" {{$attributes}}
+    <input type="checkbox" {{ $attributes->merge(['class' => $class . ' form-check-input']) }} name="{{$name}}" id="{{$id}}" value="{{$value}}" {{$attributes}}
     @if(isset($isEditMode))
         {{$isChecked}}
-            @endif
+    @endif
     >
     <label class="form-check-label" for="{{$id}}">{{$label}}</label>
 </div>

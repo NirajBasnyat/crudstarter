@@ -27,6 +27,10 @@ class CrudStarterServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/stubs' => base_path("/resources/crud-stub"),
             ], 'crud-stub');
+
+            $this->publishes([
+                __DIR__.'/config/crudstarter.php' => config_path('crudstarter.php'),
+            ], 'crudstarter-config');
         }
     }
 

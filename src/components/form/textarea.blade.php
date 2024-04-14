@@ -1,7 +1,7 @@
 @props([
   'id' => $name,
   'label' => 'Label',
-  'class' => 'form-control text-14',
+  'class' => '',
   'value' => '',
   'type' => 'text',
   'message' => '',
@@ -11,10 +11,13 @@
 ])
 
 <div class="col-md-{{$col}}">
-    <label for="{{$id}}" class="col-form-label">{{$label}} @if($req === true)
+    <label for="{{$id}}" class="col-form-label">
+        {{$label}}
+        @if($req === true)
             <span class="text-danger">*</span>
-        @endif</label>
+        @endif
+    </label>
 
-    <textarea class="{{$class}}" name="{{$name}}" id="{{$id}}"  {{$attributes}}>{{$value}}</textarea>
+    <textarea {{ $attributes->merge(['class' => $class . ' form-control text-14']) }} name="{{$name}}" id="{{$id}}" {{$attributes}}>{{$value}}</textarea>
     @error($name) <span class="text-danger small">{{ $message }}</span> @enderror
 </div>

@@ -3,10 +3,9 @@
 'name' => $name,
 'height' => '40px',
 'width' => '100px',
-'default_url' => 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg'
+'default_url' => config('crudstarter.default_image_path')
 ])
 <td>
     <img src="@if(isset($name, $url) && $url !== "" && $name !== ""){{$url}}@else{{$default_url}}@endif" alt="title"
-        height="{{$height}}" width="{{$width}}" {{$attributes}}>
+         height="{{$height}}" width="{{$width}}" {{$attributes}}>
 </td>
-{{-- changed here --}}

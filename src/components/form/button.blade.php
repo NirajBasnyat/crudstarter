@@ -1,8 +1,7 @@
-    @props([
-      'id' => 'id',
-      'class' =>'btn btn-sm btn-dark',
-      'type' => 'submit'
-    ])
+@props([
+  'id' => 'id',
+  'class' => '',
+  'type' => 'submit'
+])
 
-    <br>
-    <button id="{{$id}}" class="{{$class}}" type="{{$type}}">{{$slot}}</button>
+<button id="{{$id}}" {{ $attributes->merge(['class' => $class . ' btn btn-sm mt-3']) }} type="{{$type}}">{{$slot}}</button>
