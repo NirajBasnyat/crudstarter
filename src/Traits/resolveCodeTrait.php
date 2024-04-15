@@ -4,7 +4,7 @@ namespace Niraj\CrudStarter\Traits;
 
 use Illuminate\Support\Str;
 
-trait ResolveCodeTrait
+trait resolveCodeTrait
 {
     # START CODE FOR CRUD----------------------------------------------------------------------------------------------------------
 
