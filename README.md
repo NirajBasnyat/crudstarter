@@ -1,3 +1,4 @@
+
 ![crudstarter_small](https://user-images.githubusercontent.com/34785562/213905472-858273a7-5f49-4261-b23b-80b2e9e78778.gif)
 
 ## Crud and API Generator Package
@@ -20,6 +21,11 @@ Composer: >= 2.0
 ```
 composer require niraj/crudstarter --dev
 ```
+#### Required (Publish the config file)
+```
+php artisan vendor:publish --tag=crudstarter-config
+```
+
 #### Optional (If you want to edit stub files)
 ```
 php artisan vendor:publish --tag=crud-stub
