@@ -47,7 +47,7 @@ class ApiGenerator extends Command
         $this->showTableInfo($this->tableArray, 'API Generated');
     }
 
-    protected function initializeVariables($name)
+    protected function initializeVariables($name): void
     {
         $this->tableArray = [];
         $this->show_logo();
@@ -57,7 +57,7 @@ class ApiGenerator extends Command
         $this->kebab_case_plural = Str::plural(Str::kebab($name));
     }
 
-    protected function addRoutesAndFiles($folder_name, $name, $fields, $relations)
+    protected function addRoutesAndFiles($folder_name, $name, $fields, $relations): void
     {
         $hasSoftDeletes = $this->hasSoftDeletes();
 
@@ -115,17 +115,17 @@ class ApiGenerator extends Command
         $this->tableArray = array_merge($this->tableArray, [['Api Controller', '<info>Created</info>'], ['Api Resource', '<info>Created</info>'], ['Form Request', '<info>Created</info>']]);
     }
 
-    protected function getStub($type)
+    protected function getStub($type): false|string
     {
         return file_get_contents("$this->stub_path/crud_stubs/$type.stub");
     }
 
-    protected function getApiStub($type)
+    protected function getApiStub($type): false|string
     {
         return file_get_contents("$this->stub_path/api_stubs/$type.stub");
     }
 
-    protected function generate_resource_stub(string $name, ?string $folder_name, string $fields = '')
+    protected function generate_resource_stub(string $name, ?string $folder_name, string $fields = ''): void
     {
         $resourceContent = '';
 
@@ -167,7 +167,7 @@ class ApiGenerator extends Command
         file_put_contents("{$path}/{$name}Resource.php", $template);
     }
 
-    protected function generate_api_request_stub($name, $folder_name, $fields)
+    protected function generate_api_request_stub($name, $folder_name, $fields): void
     {
         $validationRules = $this->resolve_request($fields);
         // Gives model with replaced placeholder
@@ -214,7 +214,7 @@ class ApiGenerator extends Command
 
     //  FOR ADDITIONAL GENERATION
 
-    private function generate_model_stub($name, $folder_name, $fields, $relations)
+    private function generate_model_stub($name, $folder_name, $fields, $relations): void
     {
         $traitImport = '';
         $traits = '';
@@ -275,11 +275,11 @@ class ApiGenerator extends Command
     }
 
 
-    protected function generate_migration_stub(string $name, string $fields = '')
+    protected function generate_migration_stub(string $name, string $fields = ''): void
     {
         $softDelete = '';
 
-        if ($this->hasSoftDeletes() == true) {
+        if ($this->hasSoftDeletes()) {
             $softDelete = '$table->softDeletes();';
         }
 
@@ -309,22 +309,22 @@ class ApiGenerator extends Command
         file_put_contents($path, $template);
     }
 
-    //FOR NAMED/ FOLDERED GENERATION
+    //FOR NAMED/FOLDER GENERATION
 
-    private function generate_api_controller_stub(string $name, $folder_name, string $fields)
+    private function generate_api_controller_stub(string $name, $folder_name, string $fields): void
     {
         $methodCodes = $this->generate_controller_method_codes($name, $fields);
 
         $controller_stub = $this->getApiStub('api_controller');
 
-        if ($this->hasSoftDeletes() == true) {
+        if ($this->hasSoftDeletes()) {
             $controller_stub = $this->getApiStub('soft_delete_api_controller');
         }
 
         if ($folder_name) {
             $controller_stub = $this->getApiStub('named_api_controller');
 
-             if ($this->hasSoftDeletes() == true) {
+             if ($this->hasSoftDeletes()) {
                  $controller_stub = $this->getApiStub('soft_delete_named_api_controller');
              }
         }
@@ -367,7 +367,7 @@ class ApiGenerator extends Command
 
 
     //FOR TEST
-    protected function named_api_feature_test_stub($name, $folder_name, $fields)
+    protected function named_api_feature_test_stub($name, $folder_name, $fields): void
     {
         $createTestFields = $this->resolve_create_test_fields($fields);
 
@@ -404,7 +404,7 @@ class ApiGenerator extends Command
     }
 
     //FOR TEST
-    protected function api_feature_test_stub($name, $fields)
+    protected function api_feature_test_stub($name, $fields): void
     {
         $createTestFields = $this->resolve_create_test_fields($fields);
 

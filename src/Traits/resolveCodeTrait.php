@@ -51,7 +51,7 @@ trait resolveCodeTrait
                 } elseif ($name == 'slug') {
                     $migrationSchema .= "\$table->string('$name')->unique();".PHP_EOL.$space;
                 } elseif ($type == 'select') {
-                    $migrationSchema .= "\$table->integer('$name');".PHP_EOL.$space;
+                    $migrationSchema .= "\$table->string('$name');".PHP_EOL.$space;
                 } elseif (isset($fieldLookUp[$type])) {
                     $type = $fieldLookUp[$type];
                     $migrationSchema .= "\$table->$type('$name');".PHP_EOL.$space;
@@ -143,12 +143,13 @@ trait resolveCodeTrait
                     $fieldsData .= '<div class="card-content mt-2">'.
                         '<b class="d-block text-uppercase text-14">'.$name.'</b>'.
 
-                        '<x-table.table_image name="{{$'.$snake_cased_var.'->'.$name.' }}" url="{{$'.$snake_cased_var.'->image_path }}"/>';
+                        '<x-table.table_image name="{{$'.$snake_cased_var.'->'.$name.' }}" url="{{$'.$snake_cased_var.'->'.$name.'_path }}"/>';
                     '</div>'.PHP_EOL;
                 } else {
                     $fieldsData .= '<div class="card-content mt-2">'.
                         '<b class="d-block text-uppercase text-14">'.$name.'</b>'.
                         '<span>{{$'.$snake_cased_var.'->'.$name.'}}</span>'.
+                        '</div>'.
                         '</div>'.PHP_EOL;
                 }
             }
@@ -161,6 +162,8 @@ trait resolveCodeTrait
     {
         $fieldsData = '';
         $counter = 0;
+        $isRequired = config('crudstarter.default_validation') === 'required' ? 'true' : 'false';
+        $isRequiredImage = config('crudstarter.image_required') === true ? 'true' : 'false';
 
         if ($fields != '') {
             $data = $this->resolve_fields($fields);
@@ -171,7 +174,7 @@ trait resolveCodeTrait
                 $name = $item['name'];
                 $label = ucfirst($name);
                 $value = $snake_cased_var ? sprintf('{{$%s->%s}}', $snake_cased_var, $name) : '{{ old(\''.$name.'\') }}';
-                $imagePath = $snake_cased_var ? ' url="{{$'.$snake_cased_var.'->image_path}}"' : null;
+                $imagePath = $snake_cased_var ? ' url="{{$'.$snake_cased_var.'->'.$name.'_path}}"' : null;
 
                 // Start a new row if it's the first item or if the counter is $cols_per_row (meaning we've already added two items)
                 if ($counter % $cols_per_row == 0 && $cols_per_row > 1) {
@@ -181,18 +184,18 @@ trait resolveCodeTrait
                 $colSpanAttribute = $colSpan ? ' col="'.$colSpan.'"' : '';
 
                 if (in_array($name, config('crudstarter.image_fields'))) {
-                    $fieldsData .= '<x-form.input type="file" label="'.$label.'" id="'.$name.'" name="'.$name.'" alt="image" accept="image/*" onchange="previewThumb(\''.$name.'\''.',\''.$name.'-thumb\')"'.$colSpanAttribute.' />'.PHP_EOL;
+                    $fieldsData .= '<x-form.input type="file" :req="'.$isRequiredImage.'" label="'.$label.'" id="'.$name.'" name="'.$name.'" alt="image" accept="image/*" onchange="previewThumb(\''.$name.'\''.',\''.$name.'-thumb\')"'.$colSpanAttribute.' />'.PHP_EOL;
                     $fieldsData .= '<x-form.preview for="'.$name.'" id="'.$name.'-thumb"'.$imagePath.'/>'.PHP_EOL;
                 } elseif ($item['type'] == 'select') {
                     $options = $item['options'] ?? '[]';
-                    $fieldsData .= '<x-form.select name="'.$name.'" label="'.$label.'" :options="'.$options.'" model="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
+                    $fieldsData .= '<x-form.select name="'.$name.'" :req="'.$isRequired.'" label="'.$label.'" :options="'.$options.'" model="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
                 } elseif (in_array($item['type'], ['txt', 'text', 'tinytext', 'tinyText', 'mediumtext', 'mediumText', 'longtext', 'longText'])) {
-                    $fieldsData .= '<x-form.textarea label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'" rows="5" cols="5"'.$colSpanAttribute.' />'.PHP_EOL;
+                    $fieldsData .= '<x-form.textarea label="'.$label.'" :req="'.$isRequired.'" id="'.$name.'" name="'.$name.'" value="'.$value.'" rows="5" cols="5"'.$colSpanAttribute.' />'.PHP_EOL;
                 } elseif (in_array($item['type'], ['bool', 'boolean'])) {
                     $isChecked = $snake_cased_var ? sprintf('$%s->%s ? \'checked\' : \'\'', $snake_cased_var, $name) : '\'checked\'';
-                    $fieldsData .= '<x-form.checkbox label="'.$label.'" id="'.$name.'" name="'.$name.'" value="1" class="form-check-input" isEditMode="yes" :isChecked="'.$isChecked.'"'.$colSpanAttribute.'/>'.PHP_EOL;
+                    $fieldsData .= '<x-form.checkbox label="'.$label.'" :required="'.$isRequired.'" id="'.$name.'" name="'.$name.'" value="1" class="form-check-input" isEditMode="yes" :isChecked="'.$isChecked.'"'.$colSpanAttribute.'/>'.PHP_EOL;
                 } else {
-                    $fieldsData .= '<x-form.input type="text" label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
+                    $fieldsData .= '<x-form.input type="text" :req="'.$isRequired.'" label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
                 }
 
                 $counter++;
@@ -224,7 +227,7 @@ trait resolveCodeTrait
 
             foreach ($data as $item) {
                 if (in_array($item['name'], config('crudstarter.image_fields'))) {
-                    $rowsForIndex .= '<x-table.table_image name="{{$'.$modelNameSingularLowerCase.'->'.$item['name'].' }}" url="{{$'.$modelNameSingularLowerCase.'->image_path }}"/>';
+                    $rowsForIndex .= '<x-table.table_image name="{{$'.$modelNameSingularLowerCase.'->'.$item['name'].' }}" url="{{$'.$modelNameSingularLowerCase.'->'.$item['name'].'_path }}"/>';
                 } elseif ($item['name'] == 'status') {
                     $rowsForIndex .= '<x-table.switch :model="$'.$modelNameSingularLowerCase.'" />';
                 } else {
@@ -261,7 +264,7 @@ trait resolveCodeTrait
 
     # CODE OF RELATIONSHIP -------------------------------------------------------------------------------------------------------
 
-    protected function setRelationships(string $relations, string $folder_name = ''): string
+    protected function setRelationships(string $relations): string
     {
         $relationsLookUp = [
             'haso' => "hasOne",
@@ -274,13 +277,13 @@ trait resolveCodeTrait
 
         if ($relations != '') {
             $data = $this->resolve_fields($relations);
-            $relationsCode = $this->get_code_for_relations($data, $relationsLookUp, $folder_name);
+            $relationsCode = $this->get_code_for_relations($data, $relationsLookUp);
         }
 
         return $relationsCode;
     }
 
-    protected function get_code_for_relations(array $data, array $relationsLookUp, string $folder_name): string
+    protected function get_code_for_relations(array $data, array $relationsLookUp): string
     {
         /*   "name" => "belongsTo"
              "type" => "User"
@@ -483,60 +486,79 @@ trait resolveCodeTrait
 
     protected function generate_controller_method_codes(string $modelName, string $fields): array
     {
-        $methodCodes = [
-            'store' => '$'.Str::snake($modelName).' = '.$modelName.'::create($request->validated());',
-            'update' => '$'.Str::snake($modelName).'->update($request->validated());',
-            'delete' => '',
-        ];
+        $snakeModelName = Str::snake($modelName);
+        $storeCode = '$'.$snakeModelName.' = '.$modelName.'::create($request->validated());'.PHP_EOL;
+        $updateCode = '$'.$snakeModelName.'->update($request->validated());'.PHP_EOL;
+        $deleteCode = '';
+        $isImageRequiredConfig = config('crudstarter.image_required');
 
         if ($fields != '') {
             $fieldsArray = explode(' ', $fields);
+            $imageFields = [];
 
             foreach ($fieldsArray as $field) {
                 [$name, $type] = explode(':', $field);
                 $name = trim($name);
 
-                if (in_array($name, config('crudstarter.image_fields'))) {
-                    $methodCodes['store'] = $this->generate_image_store_code($modelName, $name);
-                    $methodCodes['update'] = config('crudstarter.image_required') === true ?
-                        $this->generate_required_image_update_code($modelName, $name) :
-                        $this->generate_image_update_code($modelName, $name);
-                    $methodCodes['delete'] = $this->generate_image_delete_code($modelName, $name);
+                if (in_array($name, config('crudstarter.image_fields'), true)) {
+                    $imageFields[] = $name;
+                }
+            }
+
+            if (!empty($imageFields)) {
+                $storeCode = '$'.$snakeModelName.' = '.$modelName.'::create($request->safe()->except([\''.implode("', '", $imageFields).'\']));'.PHP_EOL;
+
+                if (config('crudstarter.image_required') === true) {
+                    $updateCode = '$'.$snakeModelName.'->update($request->safe()->except([\''.implode("', '", $imageFields).'\']));'.PHP_EOL;
+                } else {
+                    $updateCode = '$data = '.'$request->safe()->except([\''.implode("', '", $imageFields).'\']);'.PHP_EOL;
+                }
+
+                foreach ($imageFields as $imageField) {
+                    $storeCode .= $this->generate_image_store_code($snakeModelName, $imageField);
+                    $updateCode .= $isImageRequiredConfig === true ?
+                        $this->generate_required_image_update_code($snakeModelName, $imageField) :
+                        $this->generate_image_update_code($snakeModelName, $imageField);
+                    $deleteCode .= $this->generate_image_delete_code($snakeModelName, $imageField);
+                }
+
+                if ($isImageRequiredConfig === false) {
+                    $updateCode .= PHP_EOL.'$'.$snakeModelName.'->update($data);';
                 }
             }
         }
 
-        return $methodCodes;
+        return [
+            'store' => $storeCode,
+            'update' => $updateCode,
+            'delete' => $deleteCode,
+        ];
     }
 
-    protected function generate_image_store_code(string $modelName, string $fieldName)
+    protected function generate_image_store_code(string $snakeModelName, string $fieldName): string
     {
-        return '$'.Str::snake($modelName).' = '.$modelName.'::create($request->safe()->except(\''.$fieldName.'\'));'.PHP_EOL
-            .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
-            .'    $'.Str::snake($modelName).'->storeImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
-            .'}';
+        return 'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
+            .'    $'.$snakeModelName.'->storeImage(\''.$fieldName.'\', \''.Str::kebab($snakeModelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
+            .'}'.PHP_EOL;
     }
 
-    protected function generate_image_update_code(string $modelName, string $fieldName)
+    protected function generate_image_update_code(string $modelName, string $fieldName): string
     {
-        $imageName = Str::snake($modelName);
+        $snakeModelName = Str::snake($modelName);
         $folderName = Str::kebab($modelName);
 
-        return '$data = $request->safe()->except(\''.$fieldName.'\');'.PHP_EOL
-            .'if ((bool) $request->input(\''.$imageName.'_removed\') === true'.') {'.PHP_EOL
-            .'$'.$imageName.'->deleteImage(\''.$fieldName.'\', \''.$folderName.'-images\');'.PHP_EOL
-            .'$data[\''.$fieldName.'\'] = null;'.PHP_EOL
-            .'}'.PHP_EOL.PHP_EOL
-            .'$'.$imageName.'->update($data);'.PHP_EOL.PHP_EOL
+        return 'if ((bool) $request->input(\''.$fieldName.'_removed\') === true) {'.PHP_EOL
+            .'    $'.$snakeModelName.'->deleteImage(\''.$fieldName.'\', \''.$folderName.'-images\');'.PHP_EOL
+            .'    $data[\''.$fieldName.'\'] = null;'.PHP_EOL
+            .'}'.PHP_EOL
             .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
-            .'    $'.Str::snake($modelName).'->updateImage(\''.$fieldName.'\', \''.$folderName.'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
-            .'}';
+            .'    $'.$snakeModelName.'->updateImage(\''.$fieldName.'\', \''.$folderName.'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
+            .'}'.PHP_EOL;
     }
 
     protected function generate_required_image_update_code(string $modelName, string $fieldName)
     {
-        return '$'.Str::lower($modelName).'->update($request->safe()->except(\''.$fieldName.'\'));'.PHP_EOL
-            .'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
+        return 'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
             .'    $'.Str::lower($modelName).'->updateImage(\''.$fieldName.'\', \''.Str::lower($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
             .'}';
     }
@@ -568,17 +590,21 @@ trait resolveCodeTrait
                     $fileTraitCodes['trait'] = 'use UploadFileTrait;';
                     $fileTraitCodes['traitImport'] = 'use App\Traits\UploadFileTrait;';
 
-                    $getImagePathAttribute = 'public function getImagePathAttribute():string {'.PHP_EOL;
-                    $getImagePathAttribute .= "return \$this->".$name." ? asset('uploaded-images/".$modelName.'-images/\'.$this->'.$name.")".":".$defaultFile." ;".PHP_EOL;
-                    $getImagePathAttribute .= "}".PHP_EOL;
-
-                    $fileTraitCodes['getImagePathAttribute'] = $getImagePathAttribute;
+                    $fileTraitCodes['getImagePathAttribute'] .= $this->generate_image_path_accessor($name, $modelName, $defaultFile).PHP_EOL;
                 }
             }
         }
         return $fileTraitCodes;
     }
 
+    protected function generate_image_path_accessor($name, $modelName, $defaultFile)
+    {
+        $imageAccessor = 'public function get'.ucfirst($name).'PathAttribute():string {'.PHP_EOL;
+        $imageAccessor .= "return \$this->".$name." ? asset('uploaded-images/".$modelName.'-images/\'.$this->'.$name.")".":".$defaultFile." ;".PHP_EOL;
+        $imageAccessor .= "}".PHP_EOL;
+
+        return $imageAccessor;
+    }
 
     protected function resolve_fields(string $fields): array
     {
@@ -595,9 +621,16 @@ trait resolveCodeTrait
                 $options = trim($fieldArraySingle[2]);
                 $options = str_replace('options=', '', $options);
                 $optionsArray = explode(',', $options);
-                $commaSeparetedString = implode("', '", $optionsArray);
-                $options = "['$commaSeparetedString']";
-                $data[$iteration]['options'] = $options;
+
+                $assocOptionsArray = [];
+                foreach ($optionsArray as $option) {
+                    $option = trim($option);
+                    $assocOptionsArray[] = "'$option' => '$option'";
+                }
+
+                $commaSeparatedString = implode(', ', $assocOptionsArray);
+                $optionsString = "[$commaSeparatedString]";
+                $data[$iteration]['options'] = $optionsString;
             }
 
             $iteration++;

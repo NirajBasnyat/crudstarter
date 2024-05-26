@@ -58,7 +58,7 @@ class CrudGenerator extends Command
         $this->showTableInfo($this->tableArray, 'Crud Generated');
     }
 
-    protected function initializeVariables($name)
+    protected function initializeVariables($name): void
     {
         $this->tableArray = [];
         $this->plural = Str::plural($name);
@@ -68,7 +68,7 @@ class CrudGenerator extends Command
         $this->kebab_case_singular = Str::kebab($name);
     }
 
-    protected function addRoutesAndFiles($folder_name, $name, $fields, $relations)
+    protected function addRoutesAndFiles($folder_name, $name, $fields, $relations): void
     {
         $routePath = base_path('routes/' . config('crudstarter.crud_route', 'web.php'));
 
@@ -121,7 +121,7 @@ class CrudGenerator extends Command
         $this->tableArray = [['Model', '<info>Created</info>'], ['Controller', '<info>Created</info>'], ['Migration', '<info>Created</info>'], ['Form Request', '<info>Created</info>'], ['Blade Files', '<info>Created</info>']];
     }
 
-    protected function publishComponents()
+    protected function publishComponents(): void
     {
         if (!file_exists($path = resource_path('/views/components'))) {
             mkdir($path, 0777, true);
@@ -131,21 +131,21 @@ class CrudGenerator extends Command
 
     # STUBS -------------------------------------------------------------------------------------------------------
 
-    protected function getStub($type)
+    protected function getStub($type): false|string
     {
         return file_get_contents("$this->stub_path/crud_stubs/$type.stub");
     }
 
-    protected function getBladeStub($type)
+    protected function getBladeStub($type): false|string
     {
         return file_get_contents("$this->stub_path/blade/$type.stub");
     }
 
-    protected function generateMigrationStub($name, $fields = '')
+    protected function generateMigrationStub($name, $fields = ''): void
     {
         $softDelete = '';
 
-        if ($this->hasSoftDeletes() == true) {
+        if ($this->hasSoftDeletes()) {
             $softDelete = '$table->softDeletes();';
         }
 
@@ -175,7 +175,7 @@ class CrudGenerator extends Command
         file_put_contents($path, $template);
     }
 
-    protected function generateRequestStub($name, $folder_name, $fields)
+    protected function generateRequestStub($name, $folder_name, $fields): void
     {
         $validationRulesStore = $this->resolve_request($fields, 'store');
         $validationRulesUpdate = $this->resolve_request($fields, 'update');
@@ -220,12 +220,12 @@ class CrudGenerator extends Command
         file_put_contents("{$path}/{$name}UpdateRequest.php", $updateTemplate);
     }
 
-    private function generateModelStub($name, $folder_name, $fields, $relations)
+    private function generateModelStub($name, $folder_name, $fields, $relations): void
     {
         $traitImport = '';
         $traits = '';
 
-        if ($this->hasSoftDeletes() == true) {
+        if ($this->hasSoftDeletes()) {
             $traitImport = 'use Illuminate\Database\Eloquent\SoftDeletes;';
             $traits = 'use SoftDeletes;';
         }
@@ -280,11 +280,11 @@ class CrudGenerator extends Command
         file_put_contents("{$path}/{$name}.php", $template);
     }
 
-    private function generateBladeStub($name, $folder_name, $fields)
+    private function generateBladeStub($name, $folder_name, $fields): void
     {
         $fieldHasImage = $this->has_image_field($fields);
 
-        if ($this->hasSoftDeletes() == true) {
+        if ($this->hasSoftDeletes()) {
             $index_stub = $this->getBladeStub('trashed_blade');
         } else {
             $index_stub = $this->getBladeStub('index_blade');
@@ -392,7 +392,7 @@ class CrudGenerator extends Command
         file_put_contents("{$path}/show.blade.php", $showTemplate);
     }
 
-    private function generateControllerStub($name, $folder_name, $fields)
+    private function generateControllerStub($name, $folder_name, $fields): void
     {
         $methodCodes = $this->generate_controller_method_codes($name, $fields);
 
@@ -402,14 +402,14 @@ class CrudGenerator extends Command
 
         $statusChangeMethodCode = $this->get_status_change_method_code($name, $fields);
 
-        if ($this->hasSoftDeletes() == true) {
+        if ($this->hasSoftDeletes()) {
             $controller_stub = $this->getStub('soft_delete_controller');
         }
 
         if ($folder_name) {
             $controller_stub = $this->getStub('named_controller');
 
-            if ($this->hasSoftDeletes() == true) {
+            if ($this->hasSoftDeletes()) {
                 $controller_stub = $this->getStub('soft_delete_named_controller');
             }
         }
@@ -460,7 +460,7 @@ class CrudGenerator extends Command
 
     # END OF STUBS -------------------------------------------------------------------------------------------------------
 
-    protected function featureTestStub($name, $fields = '')
+    protected function featureTestStub($name, $fields = ''): void
     {
         $createTestFields = $this->resolve_create_test_fields($fields);
 
@@ -494,7 +494,7 @@ class CrudGenerator extends Command
         file_put_contents(base_path("/tests/Feature/{$name}Test.php"), $template);
     }
 
-    protected function namedFeatureTestStub($name, $folder_name, $fields = '')
+    protected function namedFeatureTestStub($name, $folder_name, $fields = ''): void
     {
         $createTestFields = $this->resolve_create_test_fields($fields);
 

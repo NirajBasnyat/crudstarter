@@ -1,15 +1,29 @@
 <script>
+    const defaultImage = '{{ config('crudstarter.default_image_path') }}';
+
     function previewThumb(inputId, previewId) {
         const inputEl = document.getElementById(inputId);
         const previewEl = document.getElementById(previewId);
         const img_url = URL.createObjectURL(inputEl.files[0]);
+
         previewEl.children[0].setAttribute("src", img_url);
         previewEl.style.display = "block";
+
+        const markerInput = inputEl.form.querySelector(`input[name="${inputId}_removed"]`);
+        if (markerInput) {
+            markerInput.remove();
+        }
     }
 
-    function resetImage(inputId, previewId) { //for, id
+    function resetImage(inputId, previewId) {
         const inputEl = document.getElementById(inputId);
         const previewEl = document.getElementById(previewId);
+
+        const currentImgSrc = previewEl.children[0].getAttribute("src");
+
+        if (currentImgSrc === defaultImage) {
+            return;
+        }
 
         if (previewEl.style.display === "block") {
             const markerInput = document.createElement('input');

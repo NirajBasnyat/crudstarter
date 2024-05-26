@@ -18,9 +18,11 @@
 <div class="col-md-{{$col}}">
 
     @if($labelDisplay === true)
-        <label for="{{$id}}" class="col-form-label">{{$label}} @if($req === true)
+        <label for="{{$id}}" class="col-form-label">{{$label}}
+            @if($req === true)
                 <span class="text-danger">*</span>
-            @endif</label>
+            @endif
+        </label>
     @endif
     <select name='{{$name}}' {{ $attributes->merge(['class' => $class . ' form-control']) }}>
         @if($optionDisplay === true)
