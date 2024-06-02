@@ -50,8 +50,10 @@ trait resolveCodeTrait
                     $migrationSchema .= "\$table->$type('$name')->default(1);".PHP_EOL.$space;
                 } elseif ($name == 'slug') {
                     $migrationSchema .= "\$table->string('$name')->unique();".PHP_EOL.$space;
-                } elseif ($type == 'select') {
+                } elseif ($type == 'enum_select') {
                     $migrationSchema .= "\$table->string('$name');".PHP_EOL.$space;
+                } elseif ($type == 'select') {
+                    $migrationSchema .= "\$table->foreignId('$name')->constrained();".PHP_EOL.$space;
                 } elseif (isset($fieldLookUp[$type])) {
                     $type = $fieldLookUp[$type];
                     $migrationSchema .= "\$table->$type('$name');".PHP_EOL.$space;
@@ -113,7 +115,6 @@ trait resolveCodeTrait
                 }
             }
         }
-
         return $validationRules;
     }
 
@@ -174,6 +175,7 @@ trait resolveCodeTrait
                 $name = $item['name'];
                 $label = ucfirst($name);
                 $value = $snake_cased_var ? sprintf('{{$%s->%s}}', $snake_cased_var, $name) : '{{ old(\''.$name.'\') }}';
+                $selectValue = $snake_cased_var ? sprintf('model="{{$%s->%s}}"', $snake_cased_var, $name) : "";
                 $imagePath = $snake_cased_var ? ' url="{{$'.$snake_cased_var.'->'.$name.'_path}}"' : null;
 
                 // Start a new row if it's the first item or if the counter is $cols_per_row (meaning we've already added two items)
@@ -187,8 +189,17 @@ trait resolveCodeTrait
                     $fieldsData .= '<x-form.input type="file" :req="'.$isRequiredImage.'" label="'.$label.'" id="'.$name.'" name="'.$name.'" alt="image" accept="image/*" onchange="previewThumb(\''.$name.'\''.',\''.$name.'-thumb\')"'.$colSpanAttribute.' />'.PHP_EOL;
                     $fieldsData .= '<x-form.preview for="'.$name.'" id="'.$name.'-thumb"'.$imagePath.'/>'.PHP_EOL;
                 } elseif ($item['type'] == 'select') {
-                    $options = $item['options'] ?? '[]';
-                    $fieldsData .= '<x-form.select name="'.$name.'" :req="'.$isRequired.'" label="'.$label.'" :options="'.$options.'" model="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
+                    if (isset($item['model'])) {
+                        $model = $item['model'];
+                        $attributes = $item['field'];
+                        $fieldsData .= '<x-form.select name="'.$name.'" :req="'.$isRequired.'" label="'.$label.'" :options="$'.$name.'_options"'.$selectValue.$colSpanAttribute.'/>'.PHP_EOL;
+                    } else {
+                        $options = $item['options'] ?? '[]';
+                        $fieldsData .= '<x-form.select name="'.$name.'" :req="'.$isRequired.'" label="'.$label.'" :options="'.$options.'"'.$selectValue.$colSpanAttribute.'/>'.PHP_EOL;
+                    }
+                } elseif ($item['type'] == 'enum_select') {
+                    $options = '\\App\\Enum\\'.$item['enum'].'::cases()';
+                    $fieldsData .= '<x-form.enum-select name="'.$name.'" :req="'.$isRequired.'" label="'.$label.'" :options="'.$options.'"'.$selectValue.$colSpanAttribute.'/>'.PHP_EOL;
                 } elseif (in_array($item['type'], ['txt', 'text', 'tinytext', 'tinyText', 'mediumtext', 'mediumText', 'longtext', 'longText'])) {
                     $fieldsData .= '<x-form.textarea label="'.$label.'" :req="'.$isRequired.'" id="'.$name.'" name="'.$name.'" value="'.$value.'" rows="5" cols="5"'.$colSpanAttribute.' />'.PHP_EOL;
                 } elseif (in_array($item['type'], ['bool', 'boolean'])) {
@@ -209,7 +220,6 @@ trait resolveCodeTrait
 
         return $fieldsData;
     }
-
 
     // --------------------------------------------------------------------- start of index blade
 
@@ -490,41 +500,57 @@ trait resolveCodeTrait
         $storeCode = '$'.$snakeModelName.' = '.$modelName.'::create($request->validated());'.PHP_EOL;
         $updateCode = '$'.$snakeModelName.'->update($request->validated());'.PHP_EOL;
         $deleteCode = '';
+        $createCode = ");";
+        $editCode = "compact('{{modelNameSingularLowerCase}}'));";
+
         $isImageRequiredConfig = config('crudstarter.image_required');
 
         if ($fields != '') {
-            $fieldsArray = explode(' ', $fields);
+            $data = $this->resolve_fields($fields);
             $imageFields = [];
+            $modelSelectFields = [];
 
-            foreach ($fieldsArray as $field) {
-                [$name, $type] = explode(':', $field);
-                $name = trim($name);
+            foreach ($data as $field) {
+                if (isset($field['options'])) {
+                    continue;
+                }
+
+                $name = $field['name'];
+                $type = $field['type'];
 
                 if (in_array($name, config('crudstarter.image_fields'), true)) {
                     $imageFields[] = $name;
+                }
+
+                if ($type === 'select' && isset($field['model'])) {
+                    $modelSelectFields[] = $field;
                 }
             }
 
             if (!empty($imageFields)) {
                 $storeCode = '$'.$snakeModelName.' = '.$modelName.'::create($request->safe()->except([\''.implode("', '", $imageFields).'\']));'.PHP_EOL;
-
-                if (config('crudstarter.image_required') === true) {
-                    $updateCode = '$'.$snakeModelName.'->update($request->safe()->except([\''.implode("', '", $imageFields).'\']));'.PHP_EOL;
-                } else {
-                    $updateCode = '$data = '.'$request->safe()->except([\''.implode("', '", $imageFields).'\']);'.PHP_EOL;
-                }
+                $updateCode = config('crudstarter.image_required') === true ?
+                    '$'.$snakeModelName.'->update($request->safe()->except([\''.implode("', '", $imageFields).'\']));'.PHP_EOL :
+                    '$data = $request->safe()->except([\''.implode("', '", $imageFields).'\']);'.PHP_EOL;
 
                 foreach ($imageFields as $imageField) {
-                    $storeCode .= $this->generate_image_store_code($snakeModelName, $imageField);
+                    $storeCode .= $this->generate_image_store_code($modelName, $imageField);
                     $updateCode .= $isImageRequiredConfig === true ?
-                        $this->generate_required_image_update_code($snakeModelName, $imageField) :
+                        $this->generate_required_image_update_code($modelName, $imageField) :
                         $this->generate_image_update_code($snakeModelName, $imageField);
-                    $deleteCode .= $this->generate_image_delete_code($snakeModelName, $imageField);
+                    $deleteCode .= $this->generate_image_delete_code($modelName, $imageField);
                 }
 
                 if ($isImageRequiredConfig === false) {
                     $updateCode .= PHP_EOL.'$'.$snakeModelName.'->update($data);';
                 }
+            }
+
+            foreach ($modelSelectFields as $modelField) {
+                $modelName = $modelField['model'];
+                $displayAttr = $modelField['field'];
+                $createCode = ',['.PHP_EOL.'\''.$modelField['name'].'_options\' => \\App\\Models\\'.$modelName.'::pluck(\''.$displayAttr.'\', \'id\')]);'.PHP_EOL;
+                $editCode = '['.PHP_EOL.'\'{{modelNameSingularLowerCase}}\' => ${{modelNameSingularLowerCase}},'.PHP_EOL.'\''.$modelField['name'].'_options\' => \\App\\Models\\'.$modelName.'::pluck(\''.$displayAttr.'\', \'id\')]);'.PHP_EOL;
             }
         }
 
@@ -532,13 +558,15 @@ trait resolveCodeTrait
             'store' => $storeCode,
             'update' => $updateCode,
             'delete' => $deleteCode,
+            'create' => $createCode,
+            'edit' => $editCode,
         ];
     }
 
-    protected function generate_image_store_code(string $snakeModelName, string $fieldName): string
+    protected function generate_image_store_code(string $modelName, string $fieldName): string
     {
         return 'if ($request->hasFile(\''.$fieldName.'\')) {'.PHP_EOL
-            .'    $'.$snakeModelName.'->storeImage(\''.$fieldName.'\', \''.Str::kebab($snakeModelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
+            .'    $'.Str::snake($modelName).'->storeImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\', $request->file(\''.$fieldName.'\'));'.PHP_EOL
             .'}'.PHP_EOL;
     }
 
@@ -566,7 +594,7 @@ trait resolveCodeTrait
     protected function generate_image_delete_code(string $modelName, string $fieldName)
     {
         return 'if($'.Str::snake($modelName).'->'.$fieldName.'){'.PHP_EOL
-            .'$'.Str::snake($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::snake($modelName).'-images\');'.PHP_EOL
+            .'$'.Str::snake($modelName).'->deleteImage(\''.$fieldName.'\', \''.Str::kebab($modelName).'-images\');'.PHP_EOL
             .'}';
     }
 
@@ -611,30 +639,30 @@ trait resolveCodeTrait
         $fieldsArray = explode(' ', $fields);
         $data = [];
 
-        $iteration = 0;
         foreach ($fieldsArray as $field) {
             $fieldArraySingle = explode(':', $field);
-            $data[$iteration]['name'] = trim($fieldArraySingle[0]);
-            $data[$iteration]['type'] = trim($fieldArraySingle[1]);
+            $name = trim($fieldArraySingle[0]);
+            $type = trim($fieldArraySingle[1]);
 
-            if ($fieldArraySingle[1] == 'select') {
-                $options = trim($fieldArraySingle[2]);
-                $options = str_replace('options=', '', $options);
-                $optionsArray = explode(',', $options);
+            $fieldData = [
+                'name' => $name,
+                'type' => $type,
+            ];
 
-                $assocOptionsArray = [];
-                foreach ($optionsArray as $option) {
-                    $option = trim($option);
-                    $assocOptionsArray[] = "'$option' => '$option'";
+            if ($type == 'select') {
+                if (strpos($fieldArraySingle[2], 'model=') !== false) { //model=Post,title
+                    list($modelName, $displayAttribute) = explode(',', str_replace('model=', '', $fieldArraySingle[2]));
+                    $fieldData['model'] = trim($modelName);//Post
+                    $fieldData['field'] = trim($displayAttribute);//title
                 }
-
-                $commaSeparatedString = implode(', ', $assocOptionsArray);
-                $optionsString = "[$commaSeparatedString]";
-                $data[$iteration]['options'] = $optionsString;
+            }
+            if ($type == 'enum_select') {
+                $fieldData['enum'] = trim(str_replace('name=', '', $fieldArraySingle[2])); //UserTypeEnum
             }
 
-            $iteration++;
+            $data[] = $fieldData;
         }
+
         return $data;
     }
 

@@ -39,6 +39,10 @@ class CrudGenerator extends Command
         $relations = $this->option('relations');
         $softDelete = $this->option('softDelete');
 
+       /* //test
+        dd($this->resolve_fields($fields));
+        //-------*/
+
         $this->initializeVariables($name);
 
         //add routes
@@ -70,7 +74,7 @@ class CrudGenerator extends Command
 
     protected function addRoutesAndFiles($folder_name, $name, $fields, $relations): void
     {
-        $routePath = base_path('routes/' . config('crudstarter.crud_route', 'web.php'));
+        $routePath = base_path('routes/'.config('crudstarter.crud_route', 'web.php'));
 
         $formatted_folder_name = $folder_name ? Str::snake($folder_name) : null;
 
@@ -422,12 +426,14 @@ class CrudGenerator extends Command
                 '{{folderName}}',
                 '{{folderNameSnakeCase}}',
                 '{{modelName}}',
-                '{{modelNameSingularLowerCase}}',
-                '{{modelNamePluralLowerCase}}',
-                '{{modelNamePluralKebabCase}}',
                 '{{storeMethodCode}}',
                 '{{updateMethodCode}}',
                 '{{deleteMethodCode}}',
+                '{{createMethodCode}}',
+                '{{editMethodCode}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNamePluralKebabCase}}',
                 '{{fieldsForSelect}}',
             ],
             [
@@ -437,12 +443,14 @@ class CrudGenerator extends Command
                 $folder_name ?? '',
                 $folder_name ? Str::snake($folder_name) : '',
                 $name,
-                $this->snake_case,
-                $this->snake_case_plural,
-                $this->kebab_case_plural,
                 $methodCodes['store'],
                 $methodCodes['update'],
                 $methodCodes['delete'],
+                $methodCodes['create'],
+                $methodCodes['edit'],
+                $this->snake_case,
+                $this->snake_case_plural,
+                $this->kebab_case_plural,
                 $fieldsForSelect,
             ],
             $controller_stub

@@ -26,7 +26,7 @@ class {{modelName}}Controller extends Controller
 
     public function create() : View
     {
-        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.create');
+        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.create'{{createMethodCode}}
     }
 
     public function store({{modelName}}StoreRequest $request) : RedirectResponse
@@ -43,7 +43,7 @@ class {{modelName}}Controller extends Controller
 
     public function edit({{modelName}} ${{modelNameSingularLowerCase}}) : View
     {
-        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.edit', compact('{{modelNameSingularLowerCase}}'));
+        return view('{{folderNameSnakeCase}}.{{modelNameSingularLowerCase}}.edit', {{editMethodCode}}
     }
 
     public function update({{modelName}}UpdateRequest $request, {{modelName}} ${{modelNameSingularLowerCase}}) : RedirectResponse
