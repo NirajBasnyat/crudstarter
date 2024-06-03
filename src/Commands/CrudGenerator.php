@@ -39,10 +39,6 @@ class CrudGenerator extends Command
         $relations = $this->option('relations');
         $softDelete = $this->option('softDelete');
 
-       /* //test
-        dd($this->resolve_fields($fields));
-        //-------*/
-
         $this->initializeVariables($name);
 
         //add routes
