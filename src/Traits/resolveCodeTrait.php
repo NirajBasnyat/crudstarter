@@ -200,6 +200,8 @@ trait resolveCodeTrait
                 } elseif ($item['type'] == 'enum_select') {
                     $options = '\\App\\Enum\\'.$item['enum'].'::cases()';
                     $fieldsData .= '<x-form.enum-select name="'.$name.'" :req="'.$isRequired.'" label="'.$label.'" :options="'.$options.'"'.$selectValue.$colSpanAttribute.'/>'.PHP_EOL;
+                } elseif (in_array($item['type'], ['dateTime', 'date'])) {
+                    $fieldsData .= '<x-form.input type="date" :req="'.$isRequired.'" label="'.$label.'" id="'.$name.'" name="'.$name.'" value="'.$value.'"'.$colSpanAttribute.'/>'.PHP_EOL;
                 } elseif (in_array($item['type'], ['txt', 'text', 'tinytext', 'tinyText', 'mediumtext', 'mediumText', 'longtext', 'longText'])) {
                     $fieldsData .= '<x-form.textarea label="'.$label.'" :req="'.$isRequired.'" id="'.$name.'" name="'.$name.'" value="'.$value.'" rows="5" cols="5"'.$colSpanAttribute.' />'.PHP_EOL;
                 } elseif (in_array($item['type'], ['bool', 'boolean'])) {

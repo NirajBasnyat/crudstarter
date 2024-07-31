@@ -2,10 +2,10 @@
 @if(isset($routeDestroy))
         <form action="{{$routeDestroy}}" method="POST">
         @csrf
-        @method('Delete')
+            @method('Delete')
 
         <button class="btn p-0 me-2 mt-1 btn-delete" title="Delete">
-            <i class="bx bx-trash"></i>
+            <i class='bx bx-trash' style='color:#ff0026'></i>
         </button>
     </form>
     @endif

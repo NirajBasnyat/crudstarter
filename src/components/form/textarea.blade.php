@@ -3,7 +3,6 @@
   'label' => 'Label',
   'class' => '',
   'value' => '',
-  'type' => 'text',
   'message' => '',
   'col' => '12',
   'req' => false,

@@ -16,5 +16,18 @@
             <i class="menu-icon tf-icons bx bx-home-circle"></i>
         </x-sidebar-item>
 
+
+        {{--    Example of multisidebar    --}}
+        {{--<x-sidebar-multilist-head icon="bx bxs-report" name="Reports" :routes="[
+            'admin/package/reports',
+            'admin/package/filters',
+           ]">
+
+            <x-sidebar-item route="{{route('admin.package-reports.filters')}}" name="Package Filter" uri="admin/package/filters">
+            </x-sidebar-item>
+            <x-sidebar-item route="{{route('admin.package-reports.index')}}" name="Package Report" uri="admin/package/reports">
+            </x-sidebar-item>
+
+        </x-sidebar-multilist-head>--}}
     </ul>
 </aside>

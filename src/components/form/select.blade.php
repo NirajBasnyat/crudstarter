@@ -3,7 +3,6 @@
   'label' => 'Select',
   'class' => 'form-control',
   'value' => '',
-  'type' => 'text',
   'message' => '',
   'col' => '12',
   'req' => false,
