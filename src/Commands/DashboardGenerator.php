@@ -23,14 +23,15 @@ class DashboardGenerator extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle(): void
     {
         //check laravel version
         if($this->getInstalledLaravelVersion() > 10) {
             copy(__DIR__.'/../replacementFiles/controller.php', app_path("/Http/Controllers/Controller.php"));
+            copy(__DIR__.'/../replacementFiles/welcome.blade.php', resource_path("views/welcome.blade.php"));
         }
 
-        $this->info('Please wait while the Dashboard is being generated...');
+        $this->info('Please wait while the dashboard is being generated...');
 
         Process::run('composer require laravel/ui');
         Process::run('php artisan ui bootstrap --auth');
@@ -47,7 +48,7 @@ class DashboardGenerator extends Command
         $this->warn('Then run "npm run build" to compile them.');
     }
 
-    protected function publishBladeAssets()
+    protected function publishBladeAssets(): void
     {
         $this->confirmDirectoryExists("/views/_dasboard");
 
@@ -58,7 +59,7 @@ class DashboardGenerator extends Command
         copy(__DIR__.'/../dashboard/home.blade.php', resource_path("/views/home.blade.php"));
     }
 
-    protected function publishDashboardAssets()
+    protected function publishDashboardAssets(): void
     {
         $this->confirmDirectoryExists("/public/assets");
         $this->confirmDirectoryExists("/public/assets/css");
@@ -72,14 +73,14 @@ class DashboardGenerator extends Command
         \File::copyDirectory(__DIR__.'/../assets/vendor', base_path("/public/assets/vendor"));
     }
 
-    protected function confirmDirectoryExists(string $path)
+    protected function confirmDirectoryExists(string $path): void
     {
         if (!file_exists($path = base_path($path))) {
             mkdir($path, 0777, true);
         }
     }
 
-    protected function publishTraits()
+    protected function publishTraits(): void
     {
         if (!file_exists($path = app_path("/Traits"))) {
             mkdir($path, 0777, true);
