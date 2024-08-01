@@ -44,8 +44,8 @@ class DashboardGenerator extends Command
 
         $this->info('Laravel Auth UI scaffolding replaced successfully.');
         $this->info('proengsoft/laravel-jsvalidation package added.');
-        $this->warn('Please execute the "npm install && npm run dev" command to build your assets.');
-        $this->warn('Then run "npm run build" to compile them.');
+        $this->warn('Please execute the "npm install" command in your terminal.');
+        $this->warn('Then run "npm run build" to compile assets.');
     }
 
     protected function publishBladeAssets(): void

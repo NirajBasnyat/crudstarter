@@ -1,7 +1,7 @@
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
     <div class="app-brand demo">
         <a href="{{url('home')}}" class="app-brand-link">
-            <span class="app-brand-text demo text-body fw-bolder text-uppercase">LOGO</span>
+            <x-table.table_image url="{{asset('assets/img/crudstarter_logo.png')}}" name="logo" height="50px" width="200px" />
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">

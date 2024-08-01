@@ -5,7 +5,7 @@
         <div class="card-body">
             <div class="app-brand justify-content-center mb-4">
                 <a href="{{url('/')}}" class="app-brand-link">
-                    <span class="app-brand-text demo text-body fw-bolder text-uppercase">LOGO</span>
+                    <x-table.table_image url="{{asset('assets/img/crudstarter_logo.png')}}" name="logo" height="50px" width="200px" />
                 </a>
             </div>
 
