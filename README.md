@@ -6,9 +6,13 @@
 [![Stars](	https://img.shields.io/github/stars/NirajBasnyat/crudstarter)](https://github.com/NirajBasnyat/crudstarter/stargazers)
 [![Issues](https://img.shields.io/github/issues/NirajBasnyat/crudstarter)](https://github.com/NirajBasnyat/crudstarter/issues)
 ![License](https://img.shields.io/github/license/NirajBasnyat/crudstarter)
-![Packagist Downloads](https://shields.api-test.nl/packagist/dt/niraj/crudstarter)
+![Packagist](https://img.shields.io/packagist/v/niraj/crudstarter?label=version&include_prereleases)
+![Packagist Downloads](https://img.shields.io/packagist/dt/niraj/crudstarter)
 
 ### Package which lets you automate tedious CRUD Operations.
+
+# Detailed Package Docs
+## [GO TO DOCS](https://crudstarter.gitbook.io/crudstarter-docs)
 
 ## Requirements
 ```
@@ -34,7 +38,6 @@ php artisan vendor:publish --tag=crud-stub
 ```
 php artisan gen:dashboard
 ```
-
 
 ## Package Usage
 
